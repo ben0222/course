@@ -74,7 +74,7 @@ $$
 $$P(t)=\frac{P*}{1+(\frac{P*}{p_0})e^{-rt}}$$
 作图所用Python代码如下
 
-```
+```Python
 import numpy as np
 import matplotlib.pyplot as plt
 
