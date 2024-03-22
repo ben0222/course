@@ -101,26 +101,70 @@ enum TokenID
     XORB,
     XOR_EQB,
 
-    ASSIGN, // =
-    EQ,     // ==
-    LT,     // <
-    GT,     // >
-    LTE,    // <=
-    GTE,    // >=
-    NOTEQ,  // !=
+    SCOPE_RESOLUTION, // ::
+    MSELECT_OBJ,      // member selection(objects) .
+    PTM_OBJ,          // pointer-to-menber(objects) .*
+    LSBRACKET,        // left square bracket [
+    RSBRACKET,        // right square bracket ]
+    LBRACKET,         // left bracket (
+    RBRACKET,         // right bracket )
+    COMPLEMENT,       // ~
+    LNOT,             // logical not !
+    NOTEQ,            // !=
+    ADDRESSOF,        // &
+    LAND,             // &&
+    BAND_ASSIGN,      // bitwise and assignment &=
+    MODULUS,          // %
+    MODULUS_ASSIGN,   // %=
+    BEXOR,            // bitwise exclusive or ^
+    BEXOR_ASSIGN,     // bitwise exclusive or assign ^=
+    BINOR,            // Bitwise inclusive or |
+    BINOR_ASSIGN,     // Bitwise inclusive or assignment |=
+    LOR,              // logical or ||
+                      // 条件运算符?:存疑
+    COMMA,            //,
+    ADD,              // +
+    INCREMENT,        //++
+    ADD_ASSIGN,       //+=
+    SUB,              // -
+    DECREMENT,        //--
+    SUB_ASSIGN,       //-=
+    MSELECT_PT,       // member selection(pointers) ->
+    PTM_PT,           // pointer-to-menber(pointers) .*
+    MUL,              // *
+    MUL_ASSIGN,       // *=
+    DIV,              // /
+    DIV_ASSIGN,       // /=
+    ASSIGN,           // =
+    EQ,               // ==
+    LT,               // <
+    LSHIFT,           // left shift <<
+    LTE,              // <=
+    LSHIFT_ASSIGN,    // left shift assignment
+    GT,               // >
+    RSHIFT,           // right shift
+    GTE,              // >=
+    RSHIFT_ASSIGN,    // right shift assignment
+
     NUMBER,
     ID,        // 标识符identifier
-    ADD,       // +
-    SUB,       // -
-    MUL,       // *
-    DIV,       // /
-    LBRACKET,  // （
-    RBRACKET,  // ）
     SEMICOLON, // ；
     ENDINPUT
 };
 
 map<string, TokenID> keywords;
+
+struct TokenStru
+{
+    TokenID ID;
+    double val;
+    char op[3];
+    char word[20];
+};
+
+TokenStru token;
+char buffer[255];
+int pos = 0;
 
 void init()
 {
