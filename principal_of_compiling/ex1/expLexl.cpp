@@ -146,9 +146,16 @@ enum TokenID
     GTE,              // >=
     RSHIFT_ASSIGN,    // right shift assignment
 
-    NUMBER,
-    ID,        // 标识符identifier
+    LCBRACKET, // }
+    RCBRACKET, // {
+    COLON,     // :
+    QMARK,     // ?
+    PSIGN,     // #
+    BACKSLASH, /* \ */
     SEMICOLON, // ；
+    NUMBER,
+    ID, // 标识符identifier
+
     ENDINPUT
 };
 
@@ -375,4 +382,383 @@ void GetToken()
             }
         }
     }
+
+    else if (isalpha(buffer[pos])) // Identifier and keyword
+    {
+        int len = 0;
+        while (isalpha(buffer[pos]) || isdigit(buffer[pos]) || buffer[pos] == '_')
+        {
+            token.word[len] = buffer[pos];
+            len++;
+            pos++;
+        }
+        token.word[len] = '\0'; // end input?
+
+        map<string, TokenID>::iterator it;
+        it = keywords.find(token.word); // key word
+        if (it != keywords.end())
+            // If the iterator do not reach the end of the map, it means the token is a keyword(found in the map).
+            // Then token.ID will be set to the index of the keyword in the map.
+            token.ID = keywords[token.word];
+        else
+            token.ID = ID; // a normal Identifier
+    }
+
+    else if (buffer[pos] != '\0')
+    {
+        switch (buffer[pos])
+        {
+        case ':':
+            token.op[0] = buffer[pos];
+            if (buffer[pos + 1] = ':')
+            {
+                pos++;
+                token.ID = SCOPE_RESOLUTION; // ::
+                token.op[1] = ':';
+                token.op[2] = '\0';
+            }
+            token.op[1] = '\0';
+            token.ID = COLON; // :
+            break;
+
+        case '.':
+            token.op[0] = buffer[pos];
+            if (buffer[pos + 1] = '*')
+            {
+                pos++;
+                token.ID = MSELECT_OBJ; // .
+                token.op[1] = '*';
+                token.op[2] = '\0';
+            }
+            token.op[1] = '\0';
+            token.ID = PTM_OBJ; // .*
+            break;
+
+        case '[':
+            token.ID = LSBRACKET; // [
+            token.op[0] = buffer[pos];
+            token.op[1] = '\0';
+            break;
+
+        case ']':
+            token.ID = RSBRACKET; // ]
+            token.op[0] = buffer[pos];
+            token.op[1] = '\0';
+            break;
+
+        case '(':
+            token.ID = LBRACKET; // (
+            token.op[0] = buffer[pos];
+            token.op[1] = '\0';
+            break;
+
+        case ')':
+            token.ID = RBRACKET; // )
+            token.op[0] = buffer[pos];
+            token.op[1] = '\0';
+            break;
+
+        case '~':
+            token.ID = COMPLEMENT; // ~
+            token.op[0] = buffer[pos];
+            token.op[1] = '\0';
+            break;
+
+        case '!':
+            token.op[0] = '!'; // !
+            if (buffer[pos + 1] == '=')
+            {
+                pos++;
+                token.ID = NOTEQ; // !=
+                token.op[1] = '=';
+                token.op[2] = '\0';
+                break;
+            }
+            token.op[1] = '\0';
+            cout << " !  ERROR";
+            break;
+
+        case '&':
+            token.op[0] = '&';
+            if (buffer[pos + 1] == '&')
+            {
+                pos++;
+                token.ID = LAND; // &&
+                token.op[1] = '&';
+                token.op[2] = '\0';
+                break;
+            }
+            else if (buffer[pos + 1] == '=')
+            {
+                pos++;
+                token.ID = BAND_ASSIGN; // &=
+                token.op[1] = '=';
+                token.op[2] = '\0';
+                break;
+            }
+            token.op[1] = '\0';
+            token.ID = ADDRESSOF; // &
+            break;
+
+        case '%':
+            token.op[0] = '%';
+            if (buffer[pos + 1] == '=')
+            {
+                pos++;
+                token.ID = MODULUS_ASSIGN; // %=
+                token.op[1] = '=';
+                token.op[2] = '\0';
+                break;
+            }
+            token.op[1] = '\0';
+            token.ID = MODULUS; // %
+            break;
+
+        case '^':
+            token.op[0] = '^';
+            if (buffer[pos + 1] == '=')
+            {
+                pos++;
+                token.ID = BEXOR_ASSIGN; // ^=
+                token.op[1] = '=';
+                token.op[2] = '\0';
+                break;
+            }
+            token.op[1] = '\0';
+            token.ID = BEXOR; // ^
+            break;
+
+        case '|':
+            token.op[0] = '|';
+            if (buffer[pos + 1] == '=')
+            {
+                pos++;
+                token.ID = BINOR_ASSIGN; // |=
+                token.op[1] = '=';
+                token.op[2] = '\0';
+                break;
+            }
+            else if (buffer[pos + 1] == '|')
+            {
+                pos++;
+                token.ID = LOR; // ||
+                token.op[1] = '|';
+                token.op[2] = '\0';
+                break;
+            }
+            token.op[1] = '\0';
+            token.ID = BINOR; // |
+            break;
+
+        case ',':
+            token.ID = COMMA; // ,
+            token.op[0] = buffer[pos];
+            token.op[1] = '\0';
+            break;
+
+        case '+':
+            if (buffer[pos + 1] == '=')
+            {
+                pos++;
+                token.ID = ADD_ASSIGN; // +=
+                token.op[1] = '=';
+                token.op[2] = '\0';
+                break;
+            }
+            else if (buffer[pos + 1] == '+')
+            {
+                pos++;
+                token.ID = INCREMENT; // ++
+                token.op[1] = '+';
+                token.op[2] = '\0';
+                break;
+            }
+            token.ID = ADD; // +
+            token.op[0] = buffer[pos];
+            token.op[1] = '\0';
+            break;
+
+        case '-':
+            if (buffer[pos + 1] == '=')
+            {
+                pos++;
+                token.ID = SUB_ASSIGN; // -=
+                token.op[1] = '=';
+                token.op[2] = '\0';
+                break;
+            }
+            else if (buffer[pos + 1] == '-')
+            {
+                pos++;
+                token.ID = DECREMENT; // --
+                token.op[1] = '-';
+                token.op[2] = '\0';
+                break;
+            }
+            else if (buffer[pos + 1] = '>')
+            {
+                if (buffer[pos + 1] = '*')
+                {
+                    pos++;
+                    token.ID = PTM_PT; // ->*
+                    token.op[1] = '>';
+                    token.op[2] = '*';
+                    token.op[3] = '\0';
+                    break;
+                }
+                pos++;
+                token.ID = MSELECT_PT; // ->
+                token.op[1] = '-';
+                token.op[2] = '\0';
+                break;
+            }
+            token.ID = SUB; // -
+            token.op[0] = buffer[pos];
+            token.op[1] = '\0';
+            break;
+
+        case '*':
+            if (buffer[pos + 1] == '=')
+            {
+                pos++;
+                token.ID = MUL_ASSIGN; // *=
+                token.op[1] = '=';
+                token.op[2] = '\0';
+                break;
+            }
+            token.ID = MUL; // *
+            token.op[0] = buffer[pos];
+            token.op[1] = '\0';
+            break;
+
+        case '/':
+            if (buffer[pos + 1] == '=')
+            {
+                pos++;
+                token.ID = MUL_ASSIGN; // /=
+                token.op[1] = '=';
+                token.op[2] = '\0';
+                break;
+            }
+            // 注释的识别需要在此处完成
+            token.ID = DIV; // /
+            token.op[0] = buffer[pos];
+            token.op[1] = '\0';
+            break;
+
+        case ';':
+            token.ID = SEMICOLON;
+            token.op[0] = buffer[pos];
+            token.op[1] = '\0';
+            break;
+        case '>':
+            token.op[0] = '>';
+            if (buffer[pos + 1] == '=')
+            {
+                pos++;
+                token.ID = GTE; // >=
+                token.op[1] = '=';
+                token.op[2] = '\0';
+                break;
+            }
+            else if (buffer[pos + 1] = '>')
+            {
+                if (buffer[pos + 1] = '=')
+                {
+                    pos++;
+                    token.ID = RSHIFT_ASSIGN; // >>=
+                    token.op[1] = '>';
+                    token.op[2] = '=';
+                    token.op[3] = '\0';
+                    break;
+                }
+                pos++;
+                token.ID = RSHIFT; // >>
+                token.op[1] = '>';
+                token.op[2] = '\0';
+                break;
+            }
+            token.op[1] = '\0';
+            token.ID = GT;
+            break;
+        case '<':
+            token.op[0] = '<';
+            if (buffer[pos + 1] == '=')
+            {
+                pos++;
+                token.ID = LTE;
+                token.op[1] = '=';
+                token.op[2] = '\0';
+                break;
+            }
+            else if (buffer[pos + 1] = '<')
+            {
+                if (buffer[pos + 1] = '=')
+                {
+                    pos++;
+                    token.ID = LSHIFT_ASSIGN; // <<=
+                    token.op[1] = '<';
+                    token.op[2] = '=';
+                    token.op[3] = '\0';
+                    break;
+                }
+                pos++;
+                token.ID = LSHIFT; // <<
+                token.op[1] = '<';
+                token.op[2] = '\0';
+                break;
+            }
+            token.op[1] = '\0';
+            token.ID = LT;
+            break;
+        case '=':
+            token.op[0] = '=';
+            if (buffer[pos + 1] == '=')
+            {
+                pos++;
+                token.ID = EQ;
+                token.op[1] = '=';
+                token.op[2] = '\0';
+                break;
+            }
+            token.op[1] = '\0';
+            token.ID = ASSIGN;
+            break;
+
+        default:
+            cout << " Error Input at: " << pos + 1;
+            exit(1);
+        }
+        pos++;
+    }
+
+    else
+        token.ID = ENDINPUT;
+}
+int main()
+{
+
+    init();
+
+    cin.getline(buffer, 255); // 读入一行的算术表达式
+    pos = 0;
+
+    GetToken(); // 获取第一单词
+    cout << "The result is : " << endl;
+    while (token.ID != ENDINPUT)
+    {
+        if (token.ID < 4)
+            cout << token.ID << " Keyword" << endl;
+        else if (token.ID == NUMBER)
+            cout << token.ID << " " << token.val << endl;
+        else if (token.ID == ID)
+            cout << token.ID << " " << token.word << endl;
+        else
+            cout << token.ID << " " << token.op << endl;
+        GetToken(); // 获取下一个单词
+    }
+
+    system("pause");
+
+    return 0;
 }
