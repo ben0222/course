@@ -276,9 +276,12 @@ void GetToken()
         {
             s = s * 10 + buffer[pos] - '0';
             pos++;
+            if (buffer[pos] == 39) // separator '
+                pos++;
         }
-        token.ID = NUMBER;
+        token.ID = NUMBER; // 此处一设置tokenID为NUMBER，下面所有都不用再设置？
         token.val = s;
+
         if (buffer[pos] == '.') // float
         {
             int len = 0;
@@ -292,6 +295,7 @@ void GetToken()
             }
             token.val = token.val + s / pow(10, len);
         }
+
         if (buffer[pos] == 'e' || buffer[pos] == 'E') // exponent
         {
             bool ispositive = true;
@@ -328,6 +332,47 @@ void GetToken()
                 token.val = token.val * pow(10, s);
             else
                 token.val = token.val * pow(10, -s);
+        }
+
+        if (s == 0) // binary, octal, and hexa number(start with 0)
+        {
+            while (buffer[pos] >= '0' && buffer[pos] <= '7') // octal
+            {
+                s = s * 8 + buffer[pos] - '0';
+                pos++;
+            }
+            token.val = s;
+
+            if (buffer[pos] == 'b' || buffer[pos] == 'B') // binary
+            {
+                pos++; // 跳过 'b' 或 'B'
+                s = 0;
+                while (buffer[pos] == '0' || buffer[pos] == '1')
+                {
+                    s = s * 2 + buffer[pos] - '0'; // 将二进制转换为十进制
+                    pos++;
+                }
+                token.val = s;
+            }
+
+            if (buffer[pos] == 'x' || buffer[pos] == 'X') // hexa
+            {
+                pos++; // 跳过 'x' 或 'X'
+                s = 0;
+                while ((buffer[pos] >= '0' && buffer[pos] <= '9') ||
+                       (buffer[pos] >= 'a' && buffer[pos] <= 'f') ||
+                       (buffer[pos] >= 'A' && buffer[pos] <= 'F'))
+                {
+                    if (buffer[pos] >= '0' && buffer[pos] <= '9')
+                        s = s * 16 + buffer[pos] - '0';
+                    else if (buffer[pos] >= 'a' && buffer[pos] <= 'f')
+                        s = s * 16 + buffer[pos] - 'a' + 10;
+                    else // (buffer[pos] >= 'A' && buffer[pos] <= 'F')
+                        s = s * 16 + buffer[pos] - 'A' + 10;
+                    pos++;
+                }
+                token.val = s;
+            }
         }
     }
 }
