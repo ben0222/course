@@ -261,3 +261,73 @@ void init()
     keywords["XORB"] = XORB;
     keywords["XOR_EQB"] = XOR_EQB;
 }
+
+void GetToken()
+{
+    int s;
+
+    while (buffer[pos] == 32 || buffer[pos] == 9) // spacebar or tab
+        pos++;
+
+    if ((buffer[pos] >= '0') && (buffer[pos] <= '9')) // digit
+    {
+        s = 0;
+        while (buffer[pos] >= '0' && buffer[pos] <= '9')
+        {
+            s = s * 10 + buffer[pos] - '0';
+            pos++;
+        }
+        token.ID = NUMBER;
+        token.val = s;
+        if (buffer[pos] == '.') // float
+        {
+            int len = 0;
+            s = 0;
+            pos++;
+            while (buffer[pos] >= '0' && buffer[pos] <= '9')
+            {
+                s = s * 10 + buffer[pos] - '0';
+                len++;
+                pos++;
+            }
+            token.val = token.val + s / pow(10, len);
+        }
+        if (buffer[pos] == 'e' || buffer[pos] == 'E') // exponent
+        {
+            bool ispositive = true;
+            s = 0;
+            pos++;
+            if (buffer[pos] == '-')
+            {
+                ispositive = false;
+                while (buffer[pos] >= '0' && buffer[pos] <= '9')
+                {
+                    s = s * 10 + buffer[pos] - '0';
+                    pos++;
+                }
+            }
+            else if (buffer[pos] == '+')
+            {
+                ispositive = true;
+                while (buffer[pos] >= '0' && buffer[pos] <= '9')
+                {
+                    s = s * 10 + buffer[pos] - '0';
+                    pos++;
+                }
+            }
+            else if (buffer[pos] >= '0' && buffer[pos] <= '9')
+            {
+                ispositive = true;
+                while (buffer[pos] >= '0' && buffer[pos] <= '9')
+                {
+                    s = s * 10 + buffer[pos] - '0';
+                    pos++;
+                }
+            }
+            if (ispositive)
+                token.val = token.val * pow(10, s);
+            else
+                token.val = token.val * pow(10, -s);
+        }
+    }
+}
