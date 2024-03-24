@@ -780,6 +780,17 @@ void GetToken()
             token.ID = ASSIGN;
             break;
 
+        case 39:
+            if (buffer[pos + 2] == 39)
+            {
+                token.ID = CHAR;
+                token.op[0] = 39;
+                token.op[1] = buffer[pos + 1];
+                token.op[2] = 39;
+                token.op[3] = '\0';
+                pos += 3;
+            }
+            break;
         default:
             cout << " Error Input at: " << pos + 1;
             exit(1);
