@@ -154,8 +154,8 @@ enum TokenID
     BACKSLASH, /* \ */
     SEMICOLON, // ；
     NUMBER,
-    ID, // 标识符identifier
-
+    ID,       // 标识符identifier
+    COMMENTS, // 注释
     ENDINPUT
 };
 
@@ -167,6 +167,7 @@ struct TokenStru
     double val;
     char op[3];
     char word[20];
+    std::string comments;
 };
 
 TokenStru token;
@@ -410,7 +411,7 @@ void GetToken()
         {
         case ':':
             token.op[0] = buffer[pos];
-            if (buffer[pos + 1] = ':')
+            if (buffer[pos + 1] == ':')
             {
                 pos++;
                 token.ID = SCOPE_RESOLUTION; // ::
@@ -423,7 +424,7 @@ void GetToken()
 
         case '.':
             token.op[0] = buffer[pos];
-            if (buffer[pos + 1] = '*')
+            if (buffer[pos + 1] == '*')
             {
                 pos++;
                 token.ID = MSELECT_OBJ; // .
@@ -454,6 +455,18 @@ void GetToken()
 
         case ')':
             token.ID = RBRACKET; // )
+            token.op[0] = buffer[pos];
+            token.op[1] = '\0';
+            break;
+
+        case '{':
+            token.ID = LCBRACKET; // {
+            token.op[0] = buffer[pos];
+            token.op[1] = '\0';
+            break;
+
+        case '}':
+            token.ID = RCBRACKET; // }
             token.op[0] = buffer[pos];
             token.op[1] = '\0';
             break;
@@ -595,9 +608,9 @@ void GetToken()
                 token.op[2] = '\0';
                 break;
             }
-            else if (buffer[pos + 1] = '>')
+            else if (buffer[pos + 1] == '>')
             {
-                if (buffer[pos + 1] = '*')
+                if (buffer[pos + 1] == '*')
                 {
                     pos++;
                     token.ID = PTM_PT; // ->*
@@ -640,7 +653,46 @@ void GetToken()
                 token.op[2] = '\0';
                 break;
             }
-            // 注释的识别需要在此处完成
+            else if (buffer[pos + 1] == '/') // 单行注释
+            {
+                pos += 2; // 跳过 '//'
+                int commentStart = pos;
+                // 寻找注释结束符 '\n' 或文件结束符 '\0'
+                while (buffer[pos] != '\n' && buffer[pos] != '\0')
+                {
+                    pos++;
+                }
+                // 将注释内容存储到 token 中
+                token.ID = COMMENTS;
+                token.comments = std::string(buffer + commentStart, pos - commentStart);
+                // 如果下一行还是注释，继续跳过
+                if (buffer[pos] == '\n')
+                {
+                    pos++;
+                }
+                break;
+            }
+            else if (buffer[pos + 1] == '*') // 多行注释
+            {
+                pos += 2; // 跳过 '/*'
+                int commentStart = pos;
+                // 寻找注释结束标记 '*/'
+                while (!(buffer[pos] == '*' && buffer[pos + 1] == '/'))
+                {
+                    if (buffer[pos] == '\0')
+                    {
+                        // 如果没有找到注释结束标记，则报错
+                        // 或者直接忽略此处错误，继续解析下一个 token
+                        break;
+                    }
+                    pos++;
+                }
+                // 将注释内容存储到 token 中
+                token.ID = COMMENTS;
+                token.comments = std::string(buffer + commentStart, pos - commentStart);
+                pos += 2; // 跳过 '*/'
+                break;
+            }
             token.ID = DIV; // /
             token.op[0] = buffer[pos];
             token.op[1] = '\0';
@@ -651,6 +703,7 @@ void GetToken()
             token.op[0] = buffer[pos];
             token.op[1] = '\0';
             break;
+
         case '>':
             token.op[0] = '>';
             if (buffer[pos + 1] == '=')
@@ -661,9 +714,9 @@ void GetToken()
                 token.op[2] = '\0';
                 break;
             }
-            else if (buffer[pos + 1] = '>')
+            else if (buffer[pos + 1] == '>')
             {
-                if (buffer[pos + 1] = '=')
+                if (buffer[pos + 1] == '=')
                 {
                     pos++;
                     token.ID = RSHIFT_ASSIGN; // >>=
@@ -681,6 +734,7 @@ void GetToken()
             token.op[1] = '\0';
             token.ID = GT;
             break;
+
         case '<':
             token.op[0] = '<';
             if (buffer[pos + 1] == '=')
@@ -691,9 +745,9 @@ void GetToken()
                 token.op[2] = '\0';
                 break;
             }
-            else if (buffer[pos + 1] = '<')
+            else if (buffer[pos + 1] == '<')
             {
-                if (buffer[pos + 1] = '=')
+                if (buffer[pos + 1] == '=')
                 {
                     pos++;
                     token.ID = LSHIFT_ASSIGN; // <<=
@@ -711,6 +765,7 @@ void GetToken()
             token.op[1] = '\0';
             token.ID = LT;
             break;
+
         case '=':
             token.op[0] = '=';
             if (buffer[pos + 1] == '=')
