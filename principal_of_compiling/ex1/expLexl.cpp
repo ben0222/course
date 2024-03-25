@@ -2,6 +2,8 @@
 #include <string>
 #include <math.h>
 #include <map>
+#include <fstream>
+
 using namespace std;
 
 // 单词种类的枚举
@@ -177,98 +179,98 @@ int pos = 0;
 
 void init()
 {
-    keywords["ALIGNAS"] = ALIGNAS;
-    keywords["ALIGNOF"] = ALIGNOF;
-    keywords["ANDB"] = ANDB;
-    keywords["AND_EQB"] = AND_EQB;
-    keywords["ASMA"] = ASMA;
-    keywords["AUTO"] = AUTO;
-    keywords["BITANDB"] = BITANDB;
-    keywords["BITORB"] = BITORB;
-    keywords["BOOL"] = BOOL;
-    keywords["BREAK"] = BREAK;
-    keywords["CASE"] = CASE;
-    keywords["CATCH"] = CATCH;
-    keywords["CHAR"] = CHAR;
-    keywords["CHAR8_T"] = CHAR8_T;
-    keywords["CHAR16_T"] = CHAR16_T;
-    keywords["CHAR32_T"] = CHAR32_T;
-    keywords["CLASS"] = CLASS;
-    keywords["COMPLB"] = COMPLB;
-    keywords["CONCEPTC"] = CONCEPTC;
-    keywords["CONST"] = CONST;
-    keywords["CONST_CAST"] = CONST_CAST;
-    keywords["CONSTEVALC"] = CONSTEVALC;
-    keywords["CONSTEXPR"] = CONSTEXPR;
-    keywords["CONSTINITC"] = CONSTINITC;
-    keywords["CONTINUE"] = CONTINUE;
-    keywords["CO_AWAITC"] = CO_AWAITC;
-    keywords["CO_RETURNC"] = CO_RETURNC;
-    keywords["CO_YIELDC"] = CO_YIELDC;
-    keywords["DECLTYPE"] = DECLTYPE;
-    keywords["DEFAULT"] = DEFAULT;
-    keywords["DELETE"] = DELETE;
-    keywords["DO"] = DO;
-    keywords["DOUBLE"] = DOUBLE;
-    keywords["DYNAMIC_CAST"] = DYNAMIC_CAST;
-    keywords["ELSE"] = ELSE;
-    keywords["ENUM"] = ENUM;
-    keywords["EXPLICIT"] = EXPLICIT;
-    keywords["EXPORTC"] = EXPORTC;
-    keywords["EXTERN"] = EXTERN;
-    keywords["FALSE"] = FALSE;
-    keywords["FLOAT"] = FLOAT;
-    keywords["FOR"] = FOR;
-    keywords["FRIEND"] = FRIEND;
-    keywords["GOTO"] = GOTO;
-    keywords["IF"] = IF;
-    keywords["INLINE"] = INLINE;
-    keywords["INT"] = INT;
-    keywords["LONG"] = LONG;
-    keywords["MUTABLE"] = MUTABLE;
-    keywords["NAMESPACE"] = NAMESPACE;
-    keywords["NEW"] = NEW;
-    keywords["NOEXCEPT"] = NOEXCEPT;
-    keywords["NOTB"] = NOTB;
-    keywords["NOT_EQB"] = NOT_EQB;
-    keywords["NULLPTR"] = NULLPTR;
-    keywords["OPERATOR"] = OPERATOR;
-    keywords["ORB"] = ORB;
-    keywords["OR_EQB"] = OR_EQB;
-    keywords["PRIVATE"] = PRIVATE;
-    keywords["PROTECTED"] = PROTECTED;
-    keywords["PUBLIC"] = PUBLIC;
-    keywords["REGISTER"] = REGISTER;
-    keywords["REINTERPRET_CAST"] = REINTERPRET_CAST;
-    keywords["REQUIRESC"] = REQUIRESC;
-    keywords["RETURN"] = RETURN;
-    keywords["SHORT"] = SHORT;
-    keywords["SIGNED"] = SIGNED;
-    keywords["SIZEOF"] = SIZEOF;
-    keywords["STATIC"] = STATIC;
-    keywords["STATIC_ASSERT"] = STATIC_ASSERT;
-    keywords["STATIC_CAST"] = STATIC_CAST;
-    keywords["STRUCT"] = STRUCT;
-    keywords["SWITCH"] = SWITCH;
-    keywords["TEMPLATE"] = TEMPLATE;
-    keywords["THIS"] = THIS;
-    keywords["THREAD_LOCAL"] = THREAD_LOCAL;
-    keywords["THROW"] = THROW;
-    keywords["TRUE"] = TRUE;
-    keywords["TRY"] = TRY;
-    keywords["TYPEDEF"] = TYPEDEF;
-    keywords["TYPEID"] = TYPEID;
-    keywords["TYPENAME"] = TYPENAME;
-    keywords["UNION"] = UNION;
-    keywords["UNSIGNED"] = UNSIGNED;
-    keywords["USING"] = USING;
-    keywords["VIRTUAL"] = VIRTUAL;
-    keywords["VOID"] = VOID;
-    keywords["VOLATILE"] = VOLATILE;
-    keywords["WCHAR_T"] = WCHAR_T;
-    keywords["WHILE"] = WHILE;
-    keywords["XORB"] = XORB;
-    keywords["XOR_EQB"] = XOR_EQB;
+    keywords["alignas"] = ALIGNAS;
+    keywords["alignof"] = ALIGNOF;
+    keywords["andb"] = ANDB;
+    keywords["and_eqb"] = AND_EQB;
+    keywords["asma"] = ASMA;
+    keywords["auto"] = AUTO;
+    keywords["bitandb"] = BITANDB;
+    keywords["bitorb"] = BITORB;
+    keywords["bool"] = BOOL;
+    keywords["break"] = BREAK;
+    keywords["case"] = CASE;
+    keywords["catch"] = CATCH;
+    keywords["char"] = CHAR;
+    keywords["char8_t"] = CHAR8_T;
+    keywords["char16_t"] = CHAR16_T;
+    keywords["char32_t"] = CHAR32_T;
+    keywords["class"] = CLASS;
+    keywords["complb"] = COMPLB;
+    keywords["conceptc"] = CONCEPTC;
+    keywords["const"] = CONST;
+    keywords["const_cast"] = CONST_CAST;
+    keywords["constevalc"] = CONSTEVALC;
+    keywords["constexpr"] = CONSTEXPR;
+    keywords["constinitc"] = CONSTINITC;
+    keywords["continue"] = CONTINUE;
+    keywords["co_awaitc"] = CO_AWAITC;
+    keywords["co_returnc"] = CO_RETURNC;
+    keywords["co_yieldc"] = CO_YIELDC;
+    keywords["decltype"] = DECLTYPE;
+    keywords["default"] = DEFAULT;
+    keywords["delete"] = DELETE;
+    keywords["do"] = DO;
+    keywords["double"] = DOUBLE;
+    keywords["dynamic_cast"] = DYNAMIC_CAST;
+    keywords["else"] = ELSE;
+    keywords["enum"] = ENUM;
+    keywords["explicit"] = EXPLICIT;
+    keywords["exportc"] = EXPORTC;
+    keywords["extern"] = EXTERN;
+    keywords["false"] = FALSE;
+    keywords["float"] = FLOAT;
+    keywords["for"] = FOR;
+    keywords["friend"] = FRIEND;
+    keywords["goto"] = GOTO;
+    keywords["if"] = IF;
+    keywords["inline"] = INLINE;
+    keywords["int"] = INT;
+    keywords["long"] = LONG;
+    keywords["mutable"] = MUTABLE;
+    keywords["namespace"] = NAMESPACE;
+    keywords["new"] = NEW;
+    keywords["noexcept"] = NOEXCEPT;
+    keywords["notb"] = NOTB;
+    keywords["not_eqb"] = NOT_EQB;
+    keywords["nullptr"] = NULLPTR;
+    keywords["operator"] = OPERATOR;
+    keywords["orb"] = ORB;
+    keywords["or_eqb"] = OR_EQB;
+    keywords["private"] = PRIVATE;
+    keywords["protected"] = PROTECTED;
+    keywords["public"] = PUBLIC;
+    keywords["register"] = REGISTER;
+    keywords["reinterpret_cast"] = REINTERPRET_CAST;
+    keywords["requirese"] = REQUIRESC;
+    keywords["return"] = RETURN;
+    keywords["short"] = SHORT;
+    keywords["signed"] = SIGNED;
+    keywords["sizeof"] = SIZEOF;
+    keywords["static"] = STATIC;
+    keywords["static_assert"] = STATIC_ASSERT;
+    keywords["static_cast"] = STATIC_CAST;
+    keywords["struct"] = STRUCT;
+    keywords["switch"] = SWITCH;
+    keywords["template"] = TEMPLATE;
+    keywords["this"] = THIS;
+    keywords["thread_local"] = THREAD_LOCAL;
+    keywords["throw"] = THROW;
+    keywords["true"] = TRUE;
+    keywords["try"] = TRY;
+    keywords["typedef"] = TYPEDEF;
+    keywords["typeid"] = TYPEID;
+    keywords["typename"] = TYPENAME;
+    keywords["union"] = UNION;
+    keywords["unsigned"] = UNSIGNED;
+    keywords["using"] = USING;
+    keywords["virtual"] = VIRTUAL;
+    keywords["void"] = VOID;
+    keywords["volatile"] = VOLATILE;
+    keywords["wchar_t"] = WCHAR_T;
+    keywords["while"] = WHILE;
+    keywords["xorb"] = XORB;
+    keywords["xor_eqb"] = XOR_EQB;
 }
 
 void GetToken()
@@ -866,7 +868,18 @@ void GetToken()
 }
 int main()
 {
+    // ifstream file("//test//test1.cpp");
 
+    // if (!file.is_open())
+    // {
+    //     cerr << "无法打开文件" << endl;
+    //     return 1;
+    // }
+
+    // file.read(buffer, 255);
+    // buffer[file.gcount()] = '\0';
+
+    // file.close();
     init();
 
     cin.getline(buffer, 255); // 读入一行的算术表达式
@@ -876,8 +889,9 @@ int main()
     cout << "The result is : " << endl;
     while (token.ID != ENDINPUT)
     {
-        if (token.ID < 4)
-            cout << token.ID << " Keyword" << endl;
+        if (token.ID < 92)
+            cout << token.ID << " "
+                 << "Keyword" << endl;
         else if (token.ID == NUMBER)
             cout << token.ID << " " << token.val << endl;
         else if (token.ID == ID)
