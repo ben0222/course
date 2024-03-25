@@ -3,7 +3,8 @@
 #include <math.h>
 #include <map>
 #include <fstream>
-
+#include <vector>
+#include <string.h>
 using namespace std;
 
 // 单词种类的枚举
@@ -174,7 +175,7 @@ struct TokenStru
 };
 
 TokenStru token;
-char buffer[255];
+char buffer[2048];
 int pos = 0;
 
 void init()
@@ -692,7 +693,7 @@ void GetToken()
             {
                 pos += 2; // 跳过 '//'
                 int commentStart = pos;
-                // 寻找注释结束符 '\n' 或文件结束符 '\0'
+                // 寻找注释结束符（换行符）'\n' 或文件结束符 '\0'
                 while (buffer[pos] != '\n' && buffer[pos] != '\0')
                 {
                     pos++;
@@ -868,7 +869,7 @@ void GetToken()
 }
 int main()
 {
-    string fileName = "..//test1.txt";
+    string fileName = "..//test//test1.txt";
     ifstream file;
     file.open(fileName, ios::in);
 
@@ -878,15 +879,28 @@ int main()
         return 1;
     }
 
-    file.getline(buffer, 255);
-    buffer[file.gcount()] = '\0';
+    vector<string> lines; // 用于存储读取到的每一行内容
 
-    file.close();
+    string line; // 用于临时存储每一行的内容
+    while (getline(file, line))
+    {                          // 逐行读取文件内容
+        lines.push_back(line); // 将读取到的行存储到vector中
+    }
 
-    // for (int i = 0; i < sizeof(buffer) / sizeof(char); i++)
-    // {
-    //     cout << buffer[i];
-    // }
+    file.close(); // 关闭文件流
+
+    // 将vector中的内容存储到名为buffer的char数组中
+    int index = 0;
+    for (const string &str : lines)
+    {
+        strcpy(buffer + index, str.c_str()); // 将string转换为char数组并拷贝到目标数组
+        index += str.size();                 // 更新目标数组的索引位置
+    }
+
+    for (long long int i = 0; i < sizeof(buffer) / sizeof(char); i++)
+    {
+        cout << buffer[i];
+    }
 
     init();
 
@@ -904,6 +918,8 @@ int main()
             cout << token.ID << " " << token.val << endl;
         else if (token.ID == ID)
             cout << token.ID << " " << token.word << endl;
+        else if (token.ID == COMMENTS)
+            cout << token.ID << " " << token.comments << endl;
         else
             cout << token.ID << " " << token.op << endl;
         GetToken(); // 获取下一个单词
