@@ -156,6 +156,7 @@ enum TokenID
     NUMBER,
     ID,       // 标识符identifier
     COMMENTS, // 注释
+    STRING,   // 字符串
     ENDINPUT
 };
 
@@ -417,10 +418,14 @@ void GetToken()
                 token.ID = SCOPE_RESOLUTION; // ::
                 token.op[1] = ':';
                 token.op[2] = '\0';
+                break;
             }
-            token.op[1] = '\0';
-            token.ID = COLON; // :
-            break;
+            else
+            {
+                token.op[1] = '\0';
+                token.ID = COLON; // :
+                break;
+            }
 
         case '.':
             token.op[0] = buffer[pos];
@@ -430,10 +435,14 @@ void GetToken()
                 token.ID = MSELECT_OBJ; // .
                 token.op[1] = '*';
                 token.op[2] = '\0';
+                break;
             }
-            token.op[1] = '\0';
-            token.ID = PTM_OBJ; // .*
-            break;
+            else
+            {
+                token.op[1] = '\0';
+                token.ID = PTM_OBJ; // .*
+                break;
+            }
 
         case '[':
             token.ID = LSBRACKET; // [
@@ -487,9 +496,12 @@ void GetToken()
                 token.op[2] = '\0';
                 break;
             }
-            token.op[1] = '\0';
-            cout << " !  ERROR";
-            break;
+            else
+            {
+                token.op[1] = '\0';
+                cout << " !  ERROR";
+                break;
+            }
 
         case '&':
             token.op[0] = '&';
@@ -509,9 +521,12 @@ void GetToken()
                 token.op[2] = '\0';
                 break;
             }
-            token.op[1] = '\0';
-            token.ID = ADDRESSOF; // &
-            break;
+            else
+            {
+                token.op[1] = '\0';
+                token.ID = ADDRESSOF; // &
+                break;
+            }
 
         case '%':
             token.op[0] = '%';
@@ -523,9 +538,12 @@ void GetToken()
                 token.op[2] = '\0';
                 break;
             }
-            token.op[1] = '\0';
-            token.ID = MODULUS; // %
-            break;
+            else
+            {
+                token.op[1] = '\0';
+                token.ID = MODULUS; // %
+                break;
+            }
 
         case '^':
             token.op[0] = '^';
@@ -537,9 +555,12 @@ void GetToken()
                 token.op[2] = '\0';
                 break;
             }
-            token.op[1] = '\0';
-            token.ID = BEXOR; // ^
-            break;
+            else
+            {
+                token.op[1] = '\0';
+                token.ID = BEXOR; // ^
+                break;
+            }
 
         case '|':
             token.op[0] = '|';
@@ -559,9 +580,12 @@ void GetToken()
                 token.op[2] = '\0';
                 break;
             }
-            token.op[1] = '\0';
-            token.ID = BINOR; // |
-            break;
+            else
+            {
+                token.op[1] = '\0';
+                token.ID = BINOR; // |
+                break;
+            }
 
         case ',':
             token.ID = COMMA; // ,
@@ -586,10 +610,13 @@ void GetToken()
                 token.op[2] = '\0';
                 break;
             }
-            token.ID = ADD; // +
-            token.op[0] = buffer[pos];
-            token.op[1] = '\0';
-            break;
+            else
+            {
+                token.ID = ADD; // +
+                token.op[0] = buffer[pos];
+                token.op[1] = '\0';
+                break;
+            }
 
         case '-':
             if (buffer[pos + 1] == '=')
@@ -625,10 +652,13 @@ void GetToken()
                 token.op[2] = '\0';
                 break;
             }
-            token.ID = SUB; // -
-            token.op[0] = buffer[pos];
-            token.op[1] = '\0';
-            break;
+            else
+            {
+                token.ID = SUB; // -
+                token.op[0] = buffer[pos];
+                token.op[1] = '\0';
+                break;
+            }
 
         case '*':
             if (buffer[pos + 1] == '=')
@@ -639,10 +669,13 @@ void GetToken()
                 token.op[2] = '\0';
                 break;
             }
-            token.ID = MUL; // *
-            token.op[0] = buffer[pos];
-            token.op[1] = '\0';
-            break;
+            else
+            {
+                token.ID = MUL; // *
+                token.op[0] = buffer[pos];
+                token.op[1] = '\0';
+                break;
+            }
 
         case '/':
             if (buffer[pos + 1] == '=')
@@ -693,10 +726,13 @@ void GetToken()
                 pos += 2; // 跳过 '*/'
                 break;
             }
-            token.ID = DIV; // /
-            token.op[0] = buffer[pos];
-            token.op[1] = '\0';
-            break;
+            else
+            {
+                token.ID = DIV; // /
+                token.op[0] = buffer[pos];
+                token.op[1] = '\0';
+                break;
+            }
 
         case ';':
             token.ID = SEMICOLON;
@@ -731,9 +767,12 @@ void GetToken()
                 token.op[2] = '\0';
                 break;
             }
-            token.op[1] = '\0';
-            token.ID = GT;
-            break;
+            else
+            {
+                token.op[1] = '\0';
+                token.ID = GT;
+                break;
+            }
 
         case '<':
             token.op[0] = '<';
@@ -762,9 +801,12 @@ void GetToken()
                 token.op[2] = '\0';
                 break;
             }
-            token.op[1] = '\0';
-            token.ID = LT;
-            break;
+            else
+            {
+                token.op[1] = '\0';
+                token.ID = LT;
+                break;
+            }
 
         case '=':
             token.op[0] = '=';
@@ -776,14 +818,17 @@ void GetToken()
                 token.op[2] = '\0';
                 break;
             }
-            token.op[1] = '\0';
-            token.ID = ASSIGN;
-            break;
+            else
+            {
+                token.op[1] = '\0';
+                token.ID = ASSIGN;
+                break;
+            }
 
         case 39:
             if (buffer[pos + 2] == 39)
             {
-                token.ID = CHAR;
+                token.ID = CHAR; // char
                 token.op[0] = 39;
                 token.op[1] = buffer[pos + 1];
                 token.op[2] = 39;
@@ -791,6 +836,24 @@ void GetToken()
                 pos += 3;
             }
             break;
+
+        case 34:
+        {
+            pos++;
+            // create a new variable in a case, need to reduce the scope.
+            int stringStart = pos;
+            while (!(buffer[pos] == 34))
+            {
+                if (buffer[pos] == '\0')
+                    break;
+                pos++;
+            }
+            token.ID = STRING;
+            token.comments = std::string(buffer + stringStart, pos - stringStart);
+            pos++;
+            break;
+        }
+
         default:
             cout << " Error Input at: " << pos + 1;
             exit(1);
