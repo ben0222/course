@@ -868,21 +868,29 @@ void GetToken()
 }
 int main()
 {
-    // ifstream file("//test//test1.cpp");
+    string fileName = "..//test1.txt";
+    ifstream file;
+    file.open(fileName, ios::in);
 
-    // if (!file.is_open())
+    if (!file.is_open())
+    {
+        cerr << "error" << endl;
+        return 1;
+    }
+
+    file.getline(buffer, 255);
+    buffer[file.gcount()] = '\0';
+
+    file.close();
+
+    // for (int i = 0; i < sizeof(buffer) / sizeof(char); i++)
     // {
-    //     cerr << "无法打开文件" << endl;
-    //     return 1;
+    //     cout << buffer[i];
     // }
 
-    // file.read(buffer, 255);
-    // buffer[file.gcount()] = '\0';
-
-    // file.close();
     init();
 
-    cin.getline(buffer, 255); // 读入一行的算术表达式
+    // cin.getline(buffer, 255); // 读入一行的算术表达式
     pos = 0;
 
     GetToken(); // 获取第一单词
