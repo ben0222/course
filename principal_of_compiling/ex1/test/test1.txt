@@ -1,6 +1,4 @@
-
-
- void   char   int   float   double   short   long   signed   unsigned  
+void   char   int   float   double   short   long   signed   unsigned  
              struct   union   enum   typedef   sizeof   auto   static   register   extern   const   volatile   return  
              continue   break   goto   if   else   switch   case   default   for   do   while   alignas   alignof   and  
              and_eq   asm   atomic_cancel   atomic_commit   atomic_noexcept   bitand   bitor   bool   catch   char8_t  
@@ -27,7 +25,7 @@ void main()
   int d=0x12;
   int c1=0X0012;
   int d1=0X12;
-   double   ee=0.01;
+  double   ee=0.01;
   double f=0.1e-1;
   double   g=0.00;
   double   j=0.0E0;
@@ -38,4 +36,6 @@ void main()
 
   int i=0x000;
  
+ // test
+ /* test11 */
 }
