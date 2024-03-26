@@ -105,6 +105,8 @@ enum TokenID
     XORB,
     XOR_EQB,
     INCLUDE,
+    IOSTREAM,
+    STD,
 
     SCOPE_RESOLUTION, // ::
     MSELECT_OBJ,      // member selection(objects) .
@@ -162,6 +164,7 @@ enum TokenID
     ID,       // 标识符identifier
     COMMENTS, // 注释
     STRING,   // 字符串
+    CHAR_TYPE,
     ENDINPUT
 };
 
@@ -275,6 +278,8 @@ void init()
     keywords["xorb"] = XORB;
     keywords["xor_eqb"] = XOR_EQB;
     keywords["include"] = INCLUDE;
+    keywords["iostream"] = IOSTREAM;
+    keywords["std"] = STD;
 }
 
 void GetToken()
@@ -319,6 +324,7 @@ void GetToken()
             if (buffer[pos] == '-')
             {
                 ispositive = false;
+                pos++;
                 while (buffer[pos] >= '0' && buffer[pos] <= '9')
                 {
                     s = s * 10 + buffer[pos] - '0';
@@ -328,6 +334,7 @@ void GetToken()
             else if (buffer[pos] == '+')
             {
                 ispositive = true;
+                pos++;
                 while (buffer[pos] >= '0' && buffer[pos] <= '9')
                 {
                     s = s * 10 + buffer[pos] - '0';
@@ -834,12 +841,12 @@ void GetToken()
         case 39:
             if (buffer[pos + 2] == 39)
             {
-                token.ID = CHAR; // char
+                token.ID = CHAR_TYPE; // char
                 token.op[0] = 39;
                 token.op[1] = buffer[pos + 1];
                 token.op[2] = 39;
                 token.op[3] = '\0';
-                pos += 3;
+                pos += 2;
             }
             break;
 
@@ -866,6 +873,12 @@ void GetToken()
             token.op[1] = '\0';
             break;
 
+        case '?':
+            token.ID = QMARK;
+            token.op[0] = buffer[pos];
+            token.op[1] = '\0';
+            break;
+
         default:
             cout << " Error Input at: " << pos + 1;
             exit(1);
@@ -877,7 +890,7 @@ void GetToken()
 }
 int main()
 {
-    string fileName = "..//test//test2.txt";
+    string fileName = "..//test//test1.txt";
     ifstream file;
     file.open(fileName, ios::in);
 
@@ -919,7 +932,7 @@ int main()
     cout << "The result is : " << endl;
     while (token.ID != ENDINPUT)
     {
-        if (token.ID < 93)
+        if (token.ID < 95)
         {
             // cout << token.ID << " "
             //      << "Keyword" << endl;
@@ -947,6 +960,11 @@ int main()
         {
             cout << token.comments;
             cout << right << setw(16) << "comments" << endl;
+        }
+        else if (token.ID == CHAR_TYPE)
+        {
+            cout << token.op[1];
+            cout << right << setw(16) << "char" << endl;
         }
         else if (token.ID == STRING)
         {
