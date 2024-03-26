@@ -863,7 +863,7 @@ void GetToken()
             }
             token.ID = STRING;
             token.comments = std::string(buffer + stringStart, pos - stringStart);
-            pos++;
+            // pos++;
             break;
         }
 
