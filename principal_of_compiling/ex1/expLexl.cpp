@@ -5,8 +5,9 @@
 #include <fstream>
 #include <vector>
 #include <string.h>
+#include <iomanip>
 using namespace std;
-
+using std::right;
 // 单词种类的枚举
 enum TokenID
 {
@@ -103,6 +104,7 @@ enum TokenID
     WHILE,
     XORB,
     XOR_EQB,
+    INCLUDE,
 
     SCOPE_RESOLUTION, // ::
     MSELECT_OBJ,      // member selection(objects) .
@@ -175,7 +177,7 @@ struct TokenStru
 };
 
 TokenStru token;
-char buffer[2048];
+char buffer[4092];
 int pos = 0;
 
 void init()
@@ -272,6 +274,7 @@ void init()
     keywords["while"] = WHILE;
     keywords["xorb"] = XORB;
     keywords["xor_eqb"] = XOR_EQB;
+    keywords["include"] = INCLUDE;
 }
 
 void GetToken()
@@ -857,19 +860,24 @@ void GetToken()
             break;
         }
 
+        case '#':
+            token.ID = PSIGN;
+            token.op[0] = buffer[pos];
+            token.op[1] = '\0';
+            break;
+
         default:
             cout << " Error Input at: " << pos + 1;
             exit(1);
         }
         pos++;
     }
-
     else
         token.ID = ENDINPUT;
 }
 int main()
 {
-    string fileName = "..//test//test1.txt";
+    string fileName = "..//test//test2.txt";
     ifstream file;
     file.open(fileName, ios::in);
 
@@ -897,10 +905,10 @@ int main()
         index += str.size();                 // 更新目标数组的索引位置
     }
 
-    for (long long int i = 0; i < sizeof(buffer) / sizeof(char); i++)
-    {
-        cout << buffer[i];
-    }
+    // for (long long int i = 0; i < sizeof(buffer) / sizeof(char); i++)
+    // {
+    //     cout << buffer[i];
+    // }
 
     init();
 
@@ -911,17 +919,45 @@ int main()
     cout << "The result is : " << endl;
     while (token.ID != ENDINPUT)
     {
-        if (token.ID < 92)
-            cout << token.ID << " "
-                 << "Keyword" << endl;
+        if (token.ID < 93)
+        {
+            // cout << token.ID << " "
+            //      << "Keyword" << endl;
+            int i = 0;
+            while (token.word[i] != '\0')
+            {
+                cout << token.word[i];
+                i++;
+            }
+            cout << right << setw(16) << "keyword" << endl;
+        }
+
         else if (token.ID == NUMBER)
-            cout << token.ID << " " << token.val << endl;
+        {
+            cout << token.val;
+            cout << right << setw(16) << "number" << endl;
+        }
         else if (token.ID == ID)
-            cout << token.ID << " " << token.word << endl;
+        {
+            cout << token.word;
+            cout << right << setw(16) << "identifier" << endl;
+        }
+
         else if (token.ID == COMMENTS)
-            cout << token.ID << " " << token.comments << endl;
+        {
+            cout << token.comments;
+            cout << right << setw(16) << "comments" << endl;
+        }
+        else if (token.ID == STRING)
+        {
+            cout << token.comments;
+            cout << right << setw(16) << "string" << endl;
+        }
         else
-            cout << token.ID << " " << token.op << endl;
+        {
+            cout << token.op;
+            cout << right << setw(16) << "operator" << endl;
+        }
         GetToken(); // 获取下一个单词
     }
 
