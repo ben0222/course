@@ -10,12 +10,12 @@ void   char   int   float   double   short   long   signed   unsigned
              ++   --   ==   !=   >   >=   <=   <   &&   ||   !   &   |   ^   ~   <<   >>   =   !=   -=   *=   /=   %=   <<=  
              >>=   &=   ^=   |=      ,   ->   #   include   iostream   std   (   )   [   ]   {   }   ;   :   ?   :: 
 
-x_    y  abc123   xy    _xy    xy_xy23
+x_    y  abc123   xy   xy_23xy 
 
-123L  3.45 0.123 12.34 3.45e+3   345  3.45e3    3.45e-3
-
-"This is a string"
+3.45 0.123 12.34 345  3.45e+3   3.45e3   3.45e-3
 'c'
+"This is a string"
+
 
 void main()
 {
@@ -36,6 +36,7 @@ void main()
 
   int i=0x000;
  
- // test
+ // test 
+
  /* test11 */
 }
