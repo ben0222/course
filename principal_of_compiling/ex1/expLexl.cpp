@@ -173,10 +173,11 @@ map<string, TokenID> keywords;
 struct TokenStru
 {
     TokenID ID;
-    double val;
-    char op[3];
-    char word[20];
-    std::string comments;
+    double val;      // 数字的值存放于此
+    string numStr;   // 数字的字符串形式存放于此
+    char op[3];      // 符号、字符存放于此
+    char word[20];   // 关键字、标识符存放于此
+    string comments; // 注释、字符串存放于此
 };
 
 TokenStru token;
@@ -291,19 +292,24 @@ void GetToken()
 
     if ((buffer[pos] >= '0') && (buffer[pos] <= '9')) // digit
     {
+        token.numStr = ""; // 清空字符串
         s = 0;
         while (buffer[pos] >= '0' && buffer[pos] <= '9')
         {
             s = s * 10 + buffer[pos] - '0';
+            token.numStr += buffer[pos]; // 将当前字符添加到数字字符串中
             pos++;
             if (buffer[pos] == 39) // separator '
+            {
                 pos++;
+            }
         }
-        token.ID = NUMBER; // 此处一设置tokenID为NUMBER，下面所有都不用再设置？
+        token.ID = NUMBER; // 设置 token ID 为数字类型
         token.val = s;
 
         if (buffer[pos] == '.') // float
         {
+            token.numStr += '.';
             int len = 0;
             s = 0;
             pos++;
@@ -311,6 +317,7 @@ void GetToken()
             {
                 s = s * 10 + buffer[pos] - '0';
                 len++;
+                token.numStr += buffer[pos]; // 将当前字符添加到数字字符串中
                 pos++;
             }
             token.val = token.val + s / pow(10, len);
@@ -318,6 +325,7 @@ void GetToken()
 
         if (buffer[pos] == 'e' || buffer[pos] == 'E') // exponent
         {
+            token.numStr += 'e';
             bool ispositive = true;
             s = 0;
             pos++;
@@ -328,16 +336,19 @@ void GetToken()
                 while (buffer[pos] >= '0' && buffer[pos] <= '9')
                 {
                     s = s * 10 + buffer[pos] - '0';
+                    token.numStr += buffer[pos]; // 将当前字符添加到数字字符串中
                     pos++;
                 }
             }
             else if (buffer[pos] == '+')
             {
+                token.numStr += '+';
                 ispositive = true;
                 pos++;
                 while (buffer[pos] >= '0' && buffer[pos] <= '9')
                 {
                     s = s * 10 + buffer[pos] - '0';
+                    token.numStr += buffer[pos]; // 将当前字符添加到数字字符串中
                     pos++;
                 }
             }
@@ -347,6 +358,7 @@ void GetToken()
                 while (buffer[pos] >= '0' && buffer[pos] <= '9')
                 {
                     s = s * 10 + buffer[pos] - '0';
+                    token.numStr += buffer[pos]; // 将当前字符添加到数字字符串中
                     pos++;
                 }
             }
@@ -361,17 +373,20 @@ void GetToken()
             while (buffer[pos] >= '0' && buffer[pos] <= '7') // octal
             {
                 s = s * 8 + buffer[pos] - '0';
+                token.numStr += buffer[pos]; // 将当前字符添加到数字字符串中
                 pos++;
             }
             token.val = s;
 
             if (buffer[pos] == 'b' || buffer[pos] == 'B') // binary
             {
+                token.numStr += 'b';
                 pos++; // 跳过 'b' 或 'B'
                 s = 0;
                 while (buffer[pos] == '0' || buffer[pos] == '1')
                 {
                     s = s * 2 + buffer[pos] - '0'; // 将二进制转换为十进制
+                    token.numStr += buffer[pos];   // 将当前字符添加到数字字符串中
                     pos++;
                 }
                 token.val = s;
@@ -391,6 +406,7 @@ void GetToken()
                         s = s * 16 + buffer[pos] - 'a' + 10;
                     else // (buffer[pos] >= 'A' && buffer[pos] <= 'F')
                         s = s * 16 + buffer[pos] - 'A' + 10;
+                    token.numStr += buffer[pos]; // 将当前字符添加到数字字符串中
                     pos++;
                 }
                 token.val = s;
@@ -862,8 +878,7 @@ void GetToken()
                 pos++;
             }
             token.ID = STRING;
-            token.comments = std::string(buffer + stringStart, pos - stringStart);
-            // pos++;
+            token.comments = string(buffer + stringStart, pos - stringStart);
             break;
         }
 
@@ -947,7 +962,7 @@ int main()
 
         else if (token.ID == NUMBER)
         {
-            cout << token.val;
+            cout << token.numStr;
             cout << right << setw(16) << "number" << endl;
         }
         else if (token.ID == ID)
