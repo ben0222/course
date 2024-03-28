@@ -107,7 +107,8 @@ enum TokenID
     INCLUDE,
     IOSTREAM,
     STD,
-
+    COUT,
+    CIN,
     SCOPE_RESOLUTION, // ::
     MSELECT_OBJ,      // member selection(objects) .
     PTM_OBJ,          // pointer-to-menber(objects) .*
@@ -175,7 +176,7 @@ struct TokenStru
     TokenID ID;
     double val;      // 数字的值存放于此
     string numStr;   // 数字的字符串形式存放于此
-    char op[3];      // 符号、字符存放于此
+    char op[4];      // 符号、字符存放于此
     char word[20];   // 关键字、标识符存放于此
     string comments; // 注释、字符串存放于此
 };
@@ -281,6 +282,8 @@ void init()
     keywords["include"] = INCLUDE;
     keywords["iostream"] = IOSTREAM;
     keywords["std"] = STD;
+    keywords["cout"] = COUT;
+    keywords["cin"] = CIN;
 }
 
 void GetToken()
@@ -717,13 +720,15 @@ void GetToken()
             }
             else if (buffer[pos + 1] == '/') // 单行注释
             {
-                pos += 2; // 跳过 '//'
+                // pos += 2; // 不再跳过 '//'，使得输出可以包括注释符号
                 int commentStart = pos;
                 // 寻找注释结束符（换行符）'\n' 或文件结束符 '\0'
-                while (buffer[pos] != '\n' && buffer[pos] != '\0')
+                while (!(buffer[pos] == '\r' || buffer[pos] == '\0'))
                 {
                     pos++;
+                    cout << buffer[pos] << endl;
                 }
+
                 // 将注释内容存储到 token 中
                 token.ID = COMMENTS;
                 token.comments = std::string(buffer + commentStart, pos - commentStart);
@@ -731,20 +736,19 @@ void GetToken()
                 if (buffer[pos] == '\n')
                 {
                     pos++;
+                    cout << "rr" << endl;
                 }
                 break;
             }
             else if (buffer[pos + 1] == '*') // 多行注释
             {
-                pos += 2; // 跳过 '/*'
+                // pos += 2; // 跳过 '/*'
                 int commentStart = pos;
                 // 寻找注释结束标记 '*/'
                 while (!(buffer[pos] == '*' && buffer[pos + 1] == '/'))
                 {
                     if (buffer[pos] == '\0')
                     {
-                        // 如果没有找到注释结束标记，则报错
-                        // 或者直接忽略此处错误，继续解析下一个 token
                         break;
                     }
                     pos++;
@@ -752,6 +756,7 @@ void GetToken()
                 // 将注释内容存储到 token 中
                 token.ID = COMMENTS;
                 token.comments = std::string(buffer + commentStart, pos - commentStart);
+                token.comments.append("*/");
                 pos += 2; // 跳过 '*/'
                 break;
             }
@@ -905,7 +910,7 @@ void GetToken()
 }
 int main()
 {
-    string fileName = "..//test//test1.txt";
+    string fileName = "..//test//test.cpp";
     ifstream file;
     file.open(fileName, ios::in);
 
@@ -947,7 +952,7 @@ int main()
     cout << "The result is : " << endl;
     while (token.ID != ENDINPUT)
     {
-        if (token.ID < 95)
+        if (token.ID < 97)
         {
             // cout << token.ID << " "
             //      << "Keyword" << endl;
