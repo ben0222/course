@@ -14,12 +14,15 @@ enum TokenID
     // keyword
     ALIGNAS,
     ALIGNOF,
-    ANDB,
-    AND_EQB,
-    ASMA,
+    AND,
+    AND_EQ,
+    ASM,
+    ATOMIC_CANCEL,
+    ATOMIC_COMMIT,
+    ATOMIC_NOEXCEPT,
     AUTO,
-    BITANDB,
-    BITORB,
+    BITAND,
+    BITOR,
     BOOL,
     BREAK,
     CASE,
@@ -29,17 +32,17 @@ enum TokenID
     CHAR16_T,
     CHAR32_T,
     CLASS,
-    COMPLB,
-    CONCEPTC,
+    COMPL,
+    CONCEPT,
     CONST,
     CONST_CAST,
-    CONSTEVALC,
+    CONSTEVAL,
     CONSTEXPR,
     CONSTINITC,
     CONTINUE,
-    CO_AWAITC,
-    CO_RETURNC,
-    CO_YIELDC,
+    CO_AWAIT,
+    CO_RETURN,
+    CO_YIELD,
     DECLTYPE,
     DEFAULT,
     DELETE,
@@ -49,7 +52,7 @@ enum TokenID
     ELSE,
     ENUM,
     EXPLICIT,
-    EXPORTC,
+    EXPORT,
     EXTERN,
     FALSE,
     FLOAT,
@@ -64,12 +67,12 @@ enum TokenID
     NAMESPACE,
     NEW,
     NOEXCEPT,
-    NOTB,
-    NOT_EQB,
+    NOT,
+    NOT_EQ,
     NULLPTR,
     OPERATOR,
-    ORB,
-    OR_EQB,
+    OR,
+    OR_EQ,
     PRIVATE,
     PROTECTED,
     PUBLIC,
@@ -77,6 +80,8 @@ enum TokenID
     REINTERPRET_CAST,
     REQUIRESC,
     RETURN,
+    REFLEXPR,
+    REQUIRES,
     SHORT,
     SIGNED,
     SIZEOF,
@@ -85,6 +90,7 @@ enum TokenID
     STATIC_CAST,
     STRUCT,
     SWITCH,
+    SYNCHRONIZED,
     TEMPLATE,
     THIS,
     THREAD_LOCAL,
@@ -102,13 +108,15 @@ enum TokenID
     VOLATILE,
     WCHAR_T,
     WHILE,
-    XORB,
-    XOR_EQB,
+    XOR,
+    XOR_EQ,
     INCLUDE,
     IOSTREAM,
     STD,
-    COUT,
     CIN,
+    COUT,
+    MAIN,
+
     SCOPE_RESOLUTION, // ::
     MSELECT_OBJ,      // member selection(objects) .
     PTM_OBJ,          // pointer-to-menber(objects) .*
@@ -129,7 +137,6 @@ enum TokenID
     BINOR,            // Bitwise inclusive or |
     BINOR_ASSIGN,     // Bitwise inclusive or assignment |=
     LOR,              // logical or ||
-                      // 条件运算符?:存疑
     COMMA,            //,
     ADD,              // +
     INCREMENT,        //++
@@ -189,12 +196,15 @@ void init()
 {
     keywords["alignas"] = ALIGNAS;
     keywords["alignof"] = ALIGNOF;
-    keywords["andb"] = ANDB;
-    keywords["and_eqb"] = AND_EQB;
-    keywords["asma"] = ASMA;
+    keywords["and"] = AND;
+    keywords["and_eq"] = AND_EQ;
+    keywords["atomic_cancel"] = ATOMIC_CANCEL;
+    keywords["atomic_commit"] = ATOMIC_COMMIT;
+    keywords["atomic_noexcept"] = ATOMIC_NOEXCEPT;
+    keywords["asm"] = ASM;
     keywords["auto"] = AUTO;
-    keywords["bitandb"] = BITANDB;
-    keywords["bitorb"] = BITORB;
+    keywords["bitand"] = BITAND;
+    keywords["bitor"] = BITOR;
     keywords["bool"] = BOOL;
     keywords["break"] = BREAK;
     keywords["case"] = CASE;
@@ -204,17 +214,17 @@ void init()
     keywords["char16_t"] = CHAR16_T;
     keywords["char32_t"] = CHAR32_T;
     keywords["class"] = CLASS;
-    keywords["complb"] = COMPLB;
-    keywords["conceptc"] = CONCEPTC;
+    keywords["compl"] = COMPL;
+    keywords["concept"] = CONCEPT;
     keywords["const"] = CONST;
     keywords["const_cast"] = CONST_CAST;
-    keywords["constevalc"] = CONSTEVALC;
+    keywords["consteval"] = CONSTEVAL;
     keywords["constexpr"] = CONSTEXPR;
     keywords["constinitc"] = CONSTINITC;
     keywords["continue"] = CONTINUE;
-    keywords["co_awaitc"] = CO_AWAITC;
-    keywords["co_returnc"] = CO_RETURNC;
-    keywords["co_yieldc"] = CO_YIELDC;
+    keywords["co_await"] = CO_AWAIT;
+    keywords["co_return"] = CO_RETURN;
+    keywords["co_yield"] = CO_YIELD;
     keywords["decltype"] = DECLTYPE;
     keywords["default"] = DEFAULT;
     keywords["delete"] = DELETE;
@@ -224,7 +234,7 @@ void init()
     keywords["else"] = ELSE;
     keywords["enum"] = ENUM;
     keywords["explicit"] = EXPLICIT;
-    keywords["exportc"] = EXPORTC;
+    keywords["export"] = EXPORT;
     keywords["extern"] = EXTERN;
     keywords["false"] = FALSE;
     keywords["float"] = FLOAT;
@@ -239,18 +249,19 @@ void init()
     keywords["namespace"] = NAMESPACE;
     keywords["new"] = NEW;
     keywords["noexcept"] = NOEXCEPT;
-    keywords["notb"] = NOTB;
-    keywords["not_eqb"] = NOT_EQB;
+    keywords["not"] = NOT;
+    keywords["not_eq"] = NOT_EQ;
     keywords["nullptr"] = NULLPTR;
     keywords["operator"] = OPERATOR;
-    keywords["orb"] = ORB;
-    keywords["or_eqb"] = OR_EQB;
+    keywords["or"] = OR;
+    keywords["or_eq"] = OR_EQ;
     keywords["private"] = PRIVATE;
     keywords["protected"] = PROTECTED;
     keywords["public"] = PUBLIC;
     keywords["register"] = REGISTER;
+    keywords["reflexpr"] = REFLEXPR;
     keywords["reinterpret_cast"] = REINTERPRET_CAST;
-    keywords["requirese"] = REQUIRESC;
+    keywords["requires"] = REQUIRES;
     keywords["return"] = RETURN;
     keywords["short"] = SHORT;
     keywords["signed"] = SIGNED;
@@ -260,6 +271,7 @@ void init()
     keywords["static_cast"] = STATIC_CAST;
     keywords["struct"] = STRUCT;
     keywords["switch"] = SWITCH;
+    keywords["synchronized"] = SYNCHRONIZED;
     keywords["template"] = TEMPLATE;
     keywords["this"] = THIS;
     keywords["thread_local"] = THREAD_LOCAL;
@@ -277,13 +289,14 @@ void init()
     keywords["volatile"] = VOLATILE;
     keywords["wchar_t"] = WCHAR_T;
     keywords["while"] = WHILE;
-    keywords["xorb"] = XORB;
-    keywords["xor_eqb"] = XOR_EQB;
+    keywords["xor"] = XOR;
+    keywords["xor_eq"] = XOR_EQ;
     keywords["include"] = INCLUDE;
     keywords["iostream"] = IOSTREAM;
     keywords["std"] = STD;
     keywords["cout"] = COUT;
     keywords["cin"] = CIN;
+    keywords["main"] = MAIN;
 }
 
 void GetToken()
@@ -334,6 +347,7 @@ void GetToken()
             pos++;
             if (buffer[pos] == '-')
             {
+                token.numStr += '-';
                 ispositive = false;
                 pos++;
                 while (buffer[pos] >= '0' && buffer[pos] <= '9')
@@ -397,6 +411,7 @@ void GetToken()
 
             if (buffer[pos] == 'x' || buffer[pos] == 'X') // hexa
             {
+                token.numStr += 'x';
                 pos++; // 跳过 'x' 或 'X'
                 s = 0;
                 while ((buffer[pos] >= '0' && buffer[pos] <= '9') ||
@@ -519,7 +534,7 @@ void GetToken()
             break;
 
         case '!':
-            token.op[0] = '!'; // !
+            token.op[0] = buffer[pos]; // !
             if (buffer[pos + 1] == '=')
             {
                 pos++;
@@ -536,7 +551,7 @@ void GetToken()
             }
 
         case '&':
-            token.op[0] = '&';
+            token.op[0] = buffer[pos];
             if (buffer[pos + 1] == '&')
             {
                 pos++;
@@ -561,7 +576,7 @@ void GetToken()
             }
 
         case '%':
-            token.op[0] = '%';
+            token.op[0] = buffer[pos];
             if (buffer[pos + 1] == '=')
             {
                 pos++;
@@ -578,7 +593,7 @@ void GetToken()
             }
 
         case '^':
-            token.op[0] = '^';
+            token.op[0] = buffer[pos];
             if (buffer[pos + 1] == '=')
             {
                 pos++;
@@ -595,7 +610,7 @@ void GetToken()
             }
 
         case '|':
-            token.op[0] = '|';
+            token.op[0] = buffer[pos];
             if (buffer[pos + 1] == '=')
             {
                 pos++;
@@ -626,6 +641,7 @@ void GetToken()
             break;
 
         case '+':
+            token.op[0] = buffer[pos];
             if (buffer[pos + 1] == '=')
             {
                 pos++;
@@ -651,6 +667,7 @@ void GetToken()
             }
 
         case '-':
+            token.op[0] = buffer[pos];
             if (buffer[pos + 1] == '=')
             {
                 pos++;
@@ -680,7 +697,7 @@ void GetToken()
                 }
                 pos++;
                 token.ID = MSELECT_PT; // ->
-                token.op[1] = '-';
+                token.op[1] = '>';
                 token.op[2] = '\0';
                 break;
             }
@@ -693,6 +710,7 @@ void GetToken()
             }
 
         case '*':
+            token.op[0] = buffer[pos];
             if (buffer[pos + 1] == '=')
             {
                 pos++;
@@ -710,6 +728,7 @@ void GetToken()
             }
 
         case '/':
+            token.op[0] = buffer[pos];
             if (buffer[pos + 1] == '=')
             {
                 pos++;
@@ -720,35 +739,32 @@ void GetToken()
             }
             else if (buffer[pos + 1] == '/') // 单行注释
             {
-                // pos += 2; // 不再跳过 '//'，使得输出可以包括注释符号
+                // pos += 2; // 跳过 '//'
+                token.comments.append("//");
                 int commentStart = pos;
                 // 寻找注释结束符（换行符）'\n' 或文件结束符 '\0'
-                while (!(buffer[pos] == '\r' || buffer[pos] == '\0'))
+                while (buffer[pos] != '\n' && buffer[pos] != '\0')
                 {
                     pos++;
-                    cout << buffer[pos] << endl;
                 }
 
                 // 将注释内容存储到 token 中
                 token.ID = COMMENTS;
-                token.comments = std::string(buffer + commentStart, pos - commentStart);
-                // 如果下一行还是注释，继续跳过
-                if (buffer[pos] == '\n')
-                {
-                    pos++;
-                    cout << "rr" << endl;
-                }
+                token.comments = std::string(buffer + commentStart, pos - commentStart - 1);
                 break;
             }
             else if (buffer[pos + 1] == '*') // 多行注释
             {
                 // pos += 2; // 跳过 '/*'
+                token.comments.append("/*");
                 int commentStart = pos;
                 // 寻找注释结束标记 '*/'
-                while (!(buffer[pos] == '*' && buffer[pos + 1] == '/'))
+                while (!(buffer[pos + 1] == '*' && buffer[pos + 2] == '/'))
                 {
                     if (buffer[pos] == '\0')
                     {
+                        // 如果没有找到注释结束标记，则报错
+                        // 或者直接忽略此处错误，继续解析下一个 token
                         break;
                     }
                     pos++;
@@ -883,7 +899,9 @@ void GetToken()
                 pos++;
             }
             token.ID = STRING;
-            token.comments = string(buffer + stringStart, pos - stringStart);
+            token.comments += '"';
+            token.comments += string(buffer + stringStart, pos - stringStart);
+            token.comments += ('"');
             break;
         }
 
@@ -899,9 +917,15 @@ void GetToken()
             token.op[1] = '\0';
             break;
 
+        case '\r':
+        {
+            token.ID = ENDINPUT;
+            break;
+        }
+
         default:
             cout << " Error Input at: " << pos + 1;
-            exit(1);
+            // exit(1);
         }
         pos++;
     }
@@ -910,7 +934,7 @@ void GetToken()
 }
 int main()
 {
-    string fileName = "..//test//test.cpp";
+    string fileName = "..//test//test1.txt";
     ifstream file;
     file.open(fileName, ios::in);
 
@@ -954,14 +978,7 @@ int main()
     {
         if (token.ID < 97)
         {
-            // cout << token.ID << " "
-            //      << "Keyword" << endl;
-            int i = 0;
-            while (token.word[i] != '\0')
-            {
-                cout << token.word[i];
-                i++;
-            }
+            cout << token.word;
             cout << right << setw(16) << "keyword" << endl;
         }
 
@@ -983,7 +1000,7 @@ int main()
         }
         else if (token.ID == CHAR_TYPE)
         {
-            cout << token.op[1];
+            cout << token.op;
             cout << right << setw(16) << "char" << endl;
         }
         else if (token.ID == STRING)
