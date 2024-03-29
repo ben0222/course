@@ -962,14 +962,7 @@ int main()
         index += str.size();                 // 更新目标数组的索引位置
     }
 
-    // for (long long int i = 0; i < sizeof(buffer) / sizeof(char); i++)
-    // {
-    //     cout << buffer[i];
-    // }
-
     init();
-
-    // cin.getline(buffer, 255); // 读入一行的算术表达式
     pos = 0;
 
     GetToken(); // 获取第一单词
