@@ -21,7 +21,7 @@ void bfs()
         {
             int next_x = top.first + dx[i];
             int next_y = top.second + dy[i];
-            if (next_x >= 0 && next_x < n && next_y >= 0 && next_y < n && mark[next_x][next_y == -1 && map[next_x][next_y] == 0)
+            if (next_x >= 0 && next_x < n && next_y >= 0 && next_y < n && mark[next_x][next_y] == -1 && map[next_x][next_y] == 0)
             {
                 mark[next_x][next_y] = mark[top.first][top.second] + 1;
                 q.push({next_x, next_y});
