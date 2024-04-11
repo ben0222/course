@@ -17,6 +17,7 @@ void bfs()
     while (!q.empty())
     {
         PII top = q.front();
+        q.pop(); // 将当前节点出队
         for (int i = 0; i < 4; i++)
         {
             int next_x = top.first + dx[i];
@@ -32,6 +33,13 @@ void bfs()
 }
 int main()
 {
+    /*
+     4 4
+     0 1 0 0
+     0 0 0 1
+     1 1 0 0
+     1 1 1 0
+     */
     cin >> n >> m;
     for (int i = 0; i < n; i++)
     {
