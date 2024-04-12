@@ -6,10 +6,17 @@
 #define deb(x) cout << #x << "=" << x << '\n';
 const int N = 100;
 double a[N]; // 存储每个瓜的重量
-double s[N];
+double s[N]; // 为了剪枝：后面的瓜的所有重量加起来，都小于m
 int n, m;
 int ans = INF;
 using namespace std;
+struct Compare
+{
+    bool operator()(int x, int y)
+    {
+        return x > y;
+    }
+};
 struct Compare
 {
     bool operator()(int x, int y)
