@@ -4,3 +4,10 @@
 
 下面给出在不同数据范围下，代码的时间复杂度和算法该如何选择：
 ![images](data_scope_to_algorithm.jpg)
+重点：
+- 二分、整体二分、前缀和
+- dfs
+- 状态压缩dp、dp
+- 图论：dijkstra+heap、kruskal、floyd
+- STL：set、map、heap
+- 排序w
