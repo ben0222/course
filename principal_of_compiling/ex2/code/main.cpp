@@ -176,7 +176,7 @@ string regexHandling(string regex)
     return regex;
 }
 
-int priority(char op)
+int prec(char op)
 {
     if (op == '|')
     {
@@ -357,15 +357,16 @@ void createNFAStatusTable(NFA &nfa)
     set<NFAnode *> visited_nodes;
 
     // 初态
-    NFAnode *startNode = nfa.start;
-    statusTableNode startStatusNode;
-    startStatusNode.flag = '-'; // -表示初态
-    startStatusNode.id = startNode->id;
-    statusTable[startNode->id] = startStatusNode;
-    insertionOrder.push_back(startNode->id);
-    startNFAstatus.insert(startNode->id);
+    NFAnode *startNode = nfa.start;//初始化一个NFA图结点，用所传入的NFA图的start结点
+    statusTableNode startStatusNode;//初始化一个状态表结点，为初态结点
+    //设置该结点属性
+    startStatusNode.flag = '-';//标记：-为初态 
+    startStatusNode.id = startNode->id;//编号：为所传入NFA图start结点的编号
+    statusTable[startNode->id] = startStatusNode;//建立编号和表结点的映射
+    insertionOrder.push_back(startNode->id);//将该编号push入记录插入顺序的vector，来记录插入顺序
+    startNFAstatus.insert(startNode->id);//由于这是初态结点，则需要insert入记录初态的set
 
-    NFAstack.push(startNode);
+    NFAstack.push(startNode);//将该NFA图结点push入栈内
 
     while (!NFAstack.empty())
     {
@@ -375,11 +376,11 @@ void createNFAStatusTable(NFA &nfa)
 
         for (NFAedge edge : currentNode->edges)
         {
-            char transitionChar = edge.c;
+            char transition_type = edge.type;
             NFAnode *nextNode = edge.next;
 
             // 记录状态转换信息
-            statusTable[currentNode->id].m[transitionChar].insert(nextNode->id);
+            statusTable[currentNode->id].m[transition_type].insert(nextNode->id);
 
             // 如果下一个状态未被访问，将其加入堆栈
             if (visited_nodes.find(nextNode) == visited_nodes.end())
@@ -410,8 +411,183 @@ void createNFAStatusTable(NFA &nfa)
     }
 
     // 顺序表才插入终态
-    nfaNode *endNode = nfa.end;
+    NFAnode *endNode = nfa.end;
     insertionOrder.push_back(endNode->id);
+}
+
+NFA regexToNFA(string regex)
+{
+    // 双栈法，创建两个栈opStack（运算符栈）,nfaStack（nfa图栈）
+    stack<char> opStack;
+    stack<NFA> NFAStack;
+
+    // 对表达式进行类似于逆波兰表达式处理
+    // 运算符：| .（） ？ +  *
+    for (char c : regex)
+    {
+        switch (c)
+        {
+        case ' ': // 空格跳过
+            break;
+        case '(':
+            opStack.push(c);
+            break;
+        case ')':
+            while (!opStack.empty() && opStack.top() != '(')
+            {
+                // 处理栈顶运算符，构建NFA图，并将结果入栈
+                char op = opStack.top();
+                opStack.pop();
+
+                if (op == '|') {
+                    // 处理并构建"|"运算符
+                    NFA nfa2 = NFAStack.top();
+                    NFAStack.pop();
+                    NFA nfa1 = NFAStack.top();
+                    NFAStack.pop();
+
+                    // 创建新的NFA，表示nfa1 | nfa2
+                    NFA nfa_result = NFA_or(nfa1, nfa2);
+                    nfaStack.push(nfa_result);
+                }
+                else if (op == '.') {
+                    // 处理并构建"."运算符
+                    NFA nfa2 = NFAStack.top();
+                    NFAStack.pop();
+                    NFA nfa1 = NFAStack.top();
+                    NFAStack.pop();
+
+                    // 创建新的NFA，表示nfa1 . nfa2
+                    NFA nfa_result = NFA_connect(nfa1, nfa2);
+                    NFAStack.push(nfa_result);
+                }
+            }
+            if (opStack.empty())
+            {
+                cout << "Brackets error!";
+                exit(-1);
+            }
+            else
+            {
+                opStack.pop(); // 弹出(
+            }
+            break;
+            //下面两个运算符的处理代码与上面while循环内一致！！！！！！！！！，需要修改
+        case '|':
+        case '.':
+            // 处理运算符 | 和 .
+            while (!opStack.empty() && (opStack.top() == '|' || opStack.top() == '.') &&
+                prec(opStack.top()) >= prec(c))
+            {
+                char op = opStack.top();
+                opStack.pop();
+
+                // 处理栈顶运算符，构建NFA图，并将结果入栈
+                if (op == '|') {
+                    // 处理并构建"|"运算符
+                    NFA nfa2 = nfaStack.top();
+                    nfaStack.pop();
+                    NFA nfa1 = nfaStack.top();
+                    nfaStack.pop();
+
+                    // 创建新的NFA，表示nfa1 | nfa2
+                    NFA resultNFA = CreateUnionNFA(nfa1, nfa2);
+                    nfaStack.push(resultNFA);
+                }
+                else if (op == '.') {
+                    // 处理并构建"."运算符
+                    NFA nfa2 = nfaStack.top();
+                    nfaStack.pop();
+                    NFA nfa1 = nfaStack.top();
+                    nfaStack.pop();
+
+                    // 创建新的 NFA，表示 nfa1 . nfa2
+                    NFA resultNFA = CreateConcatenationNFA(nfa1, nfa2);
+                    nfaStack.push(resultNFA);
+                }
+            }
+            opStack.push(c);
+            break;
+        case '?':
+        case '*':
+            // 处理闭包运算符 ? + *
+            // 从NFAStack弹出NFA，应用相应的闭包操作，并将结果入栈
+            if (!NFAStack.empty()) {
+                NFA nfa = NFAStack.top();
+                NFAStack.pop();
+                if (c == '?') {
+                    // 处理 ?
+                    NFA nfa_result = NFA_optional(nfa);
+                    nfaStack.push(nfa_result);
+                }
+                else if (c == '*') {
+                    // 处理 *
+                    NFA nfa_result = NFA_kleene_star(nfa);
+                    nfaStack.push(nfa_result);
+                }
+            }
+            else {
+                cout << "Kleene closure error!";
+                exit(-1);
+            }
+            break;
+        default:
+            // 处理字母字符
+            NFA nfa = NFA_basic(c); // 创建基本的字符NFA
+            NFAStack.push(nfa);
+            break;
+        }
+
+    }
+
+    // 处理栈中剩余的运算符
+    while (!opStack.empty())
+    {
+        char op = opStack.top();
+        opStack.pop();
+
+        if (op == '|' || op == '.')
+        {
+            // 处理并构建运算符 | 和 .
+            if (nfaStack.size() < 2)
+            {
+                qDebug() << "正则表达式语法错误：不足以处理运算符 " << op << "！";
+                exit(-1);
+            }
+
+            NFA nfa2 = nfaStack.top();
+            nfaStack.pop();
+            NFA nfa1 = nfaStack.top();
+            nfaStack.pop();
+
+            if (op == '|')
+            {
+                // 创建新的 NFA，表示 nfa1 | nfa2
+                NFA resultNFA = CreateUnionNFA(nfa1, nfa2);
+                nfaStack.push(resultNFA);
+            }
+            else if (op == '.')
+            {
+                // 创建新的 NFA，表示 nfa1 . nfa2
+                NFA resultNFA = CreateConcatenationNFA(nfa1, nfa2);
+                nfaStack.push(resultNFA);
+            }
+        }
+        else
+        {
+            qDebug() << "正则表达式语法错误：未知的运算符 " << op << "！";
+            exit(-1);
+        }
+    }
+
+    // 最终的NFA图在nfaStack的顶部
+    NFA result = nfaStack.top();
+    qDebug() << "NFA图构建完毕" << endl;
+
+    createNFAStatusTable(result);
+    qDebug() << "状态转换表构建完毕" << endl;
+
+    return result;
 }
 
 int main()
