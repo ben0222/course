@@ -8,7 +8,7 @@
 #include <stack>
 using namespace std;
 /*----------数据结构----------*/
-const string EPSILON = "~";
+const char EPSILON = '~';
 // 结点数量统计
 int node_count;
 // 全局字符统计
@@ -17,7 +17,7 @@ set<char> DFAChar;
 struct NFAnode;
 struct NFAedge // NFA边
 {
-    string type;
+    char type;
     NFAnode *next;
 };
 struct NFAnode // NFA结点
@@ -48,9 +48,9 @@ struct NFA // NFA图
 
 struct statusTableNode
 {
-    string flag;                           // 标记初态还是终态
-    int id;                                // 唯一id值
-    map<string, set<int>> state_reachable; // 对应字符能到达的状态
+    string flag;                         // 标记初态还是终态
+    int id;                              // 唯一id值
+    map<char, set<int>> state_reachable; // 对应字符能到达的状态
     statusTableNode()
     {
         flag = ""; // 默认为空
@@ -65,12 +65,12 @@ set<int> initNFAstatus;
 set<int> finalNFAstatus;
 
 // dfa节点
-struct DFAnode
+struct DFANode
 {
-    string flag;                       // 是否包含终态（+）或初态（-）
-    set<int> nfaStates;                // 该DFA状态包含的NFA状态的集合
-    map<string, set<int>> transitions; // 字符到下一状态的映射
-    DFAnode()
+    string flag;                     // 是否包含终态（+）或初态（-）
+    set<int> nfaStates;              // 该DFA状态包含的NFA状态的集合
+    map<char, set<int>> transitions; // 字符到下一状态的映射
+    DFANode()
     {
         flag = "";
     }
@@ -79,7 +79,7 @@ struct DFAnode
 set<set<int>> dfaStatusSet;
 
 // dfa最终结果
-vector<DFAnode> dfaTable;
+vector<DFANode> dfaTable;
 
 // 下面用于DFA最小化
 //  dfa终态集合
@@ -88,7 +88,7 @@ set<int> dfaFinalStatusSet;
 set<int> dfaNotFinalStatusSet;
 // set对应序号MAP
 map<set<int>, int> dfaToNumberMap;
-int startStaus;
+int startStatus;
 /*----------预处理----------*/
 string multiLine(const string &regex)
 {
@@ -443,7 +443,7 @@ void createNFAStatusTable(NFA &nfa)
 
         for (NFAedge edge : currentNode->edges)
         {
-            string transition_type = edge.type;
+            char transition_type = edge.type;
             NFAnode *nextNode = edge.next;
 
             // 记录状态转换信息
@@ -697,6 +697,30 @@ NFA regexToNFA(string regex)
 
     return result;
 }
+
+// 测试输出NFA状态转换表程序（debug使用）
+// void printStatusTable()
+// {
+//     // 打印状态表按照插入顺序
+//     for (int id : insertionOrder)
+//     {
+//         const statusTableNode &node = statusTable[id];
+//         cout << "Node ID: " << node.id << ", Flag: " << string(node.flag) << "\n";
+
+//         for (const auto &entry : node.state_reachable)
+//         {
+//             char transitionChar = entry.first;
+//             const std::set<int> &targetStates = entry.second;
+
+//             cout << "  Transition: " << transitionChar << " -> {";
+//             for (int targetState : targetStates)
+//             {
+//                 cout << targetState << " ";
+//             }
+//             cout << "}\n";
+//         }
+//     }
+// }
 /*----------NFA to DFA----------*/
 // 判断是否含有初态终态，含有则返回对应字符串
 string containsInitOrFinal(set<int> &statusSet)
@@ -746,9 +770,9 @@ set<int> epsilonClosure(int id)
     return epsilon_closure;
 }
 
-set<int> otherClosure(int id, string str)
+set<int> otherClosure(int id, char c)
 {
-    set<int> other_result;
+    set<int> other_clousure;
     set<int> processed;
     // DFS实现其他字符闭包
     stack<int> stack;
@@ -764,16 +788,141 @@ set<int> otherClosure(int id, string str)
 
         processed.insert(current); // 否则，将 current 标记为已处理。（插入processed集合）
 
-        set<int> temp = statusTable[current].state_reachable[str]; // 获取状态 current 在输入字符 ch 下可以到达的状态集合 otherClosure。
-        for (auto t : temp)                                        // 遍历 otherClosure 中的每个状态 o：对于每个可达状态 o，调用 epsilonClosure(o) 计算其ε闭包，并将得到的闭包中的所有状态加入到 other_result 中。
+        set<int> temp = statusTable[current].state_reachable[c]; // 获取状态 current 在输入字符 c 下可以到达的状态集合 otherClosure。
+        for (auto t : temp)                                      // 遍历 otherClosure 中的每个状态 t：对于每个可达状态 t，调用 epsilonClosure(t) 计算其ε闭包，并将得到的闭包中的所有状态加入到 other_result 中。
         {
-            auto tmp = epsilonClosure(t);
-            other_result.insert(tmp.begin(), tmp.end());
-            stack.push(t); // 将状态 o 入栈，以便后续继续搜索。
+            auto t_epsilonClousure = epsilonClosure(t);
+            other_clousure.insert(t_epsilonClousure.begin(), t_epsilonClousure.end());
+            stack.push(t); // 将状态 t 入栈，以便后续继续搜索。
         }
     }
-    // 当栈为空时，表示所有通过输入字符 ch 可以到达的状态都已经被处理，函数返回 other_result，其中包含了其他闭包中的所有状态。
-    return other_result;
+    // 当栈为空时，表示所有通过输入字符 ch 可以到达的状态都已经被处理，函数返回 other_closure，其中包含了其他闭包中的所有状态。
+    return other_clousure;
+}
+
+void NFAtoDFA(NFA &nfa)
+{
+    // 1.NFA中初态等价合并
+    // 2.从初态开始非ε转换
+    /*-----初始化DFA的起始状态-----*/
+    int dfaStatusCount = 1;   // dfa状态数计数器
+    auto start = nfa.start;   // 获得NFA图的起始位置
+    auto startId = start->id; // 获得起始编号
+
+    DFANode startDFANode;
+    startDFANode.nfaStates = epsilonClosure(startId);                // 初始闭包
+    startDFANode.flag = containsInitOrFinal(startDFANode.nfaStates); // 判断初始闭包是否包含初态和终态
+
+    deque<set<int>> newStatus{}; // 新状态双向队列
+    // 将初始状态的ε闭包与对应的编号存入 dfaToNumberMap 中，并将初始状态的编号记录为 startStatus。
+    dfaToNumberMap[startDFANode.nfaStates] = dfaStatusCount;
+    startStatus = dfaStatusCount;
+
+    // 判断初始状态的ε闭包是否包含终态，如果是，则将其编号加入到终态集合 dfaFinalStatusSet 中；否则，将其编号加入到非终态集合 dfaNotFinalStatusSet 中，并递增 dfaStatusCount。
+    if (containsInitOrFinal(startDFANode.nfaStates).find("+") != string::npos)
+    {
+        dfaFinalStatusSet.insert(dfaStatusCount);
+        dfaStatusCount++;
+    }
+    else
+    {
+        dfaNotFinalStatusSet.insert(dfaStatusCount);
+        dfaStatusCount++;
+    }
+
+    // 针对起始状态 startDFANode 的每个输入字符 ch，进行遍历
+    for (auto ch : DFAChar)
+    {
+        set<int> ch_closure{}; // 当前字符ch的闭包
+
+        // 计算起始状态的输入字符 ch 下的其他闭包，并将结果存储在 ch_closure 中。
+        for (auto c : startDFANode.nfaStates)
+        {
+            set<int> tmp = otherClosure(c, ch);
+            ch_closure.insert(tmp.begin(), tmp.end());
+        }
+
+        // 若计算出当前字符ch闭包为空，直接进入下一个字符
+        if (ch_closure.empty())
+        {
+            continue;
+        }
+        // 若不为空，进入下面的处理
+        int size_before = dfaStatusSet.size();
+        dfaStatusSet.insert(ch_closure); // 将计算得到的 ch_closure 加入到 DFA 状态集合 dfaStatusSet 中
+        int size_after = dfaStatusSet.size();
+        startDFANode.transitions[ch] = ch_closure; // 不管一不一样都是该节点这个字符的状态
+        // 如果大小不一样，证明是新状态
+        if (size_after > size_before)
+        {
+            // 将其加入到队列 newStatus 中，更新状态编号
+            dfaToNumberMap[ch_closure] = dfaStatusCount;
+            newStatus.push_back(ch_closure);
+            if (containsInitOrFinal(ch_closure).find("+") != string::npos)
+            {
+                dfaFinalStatusSet.insert(dfaStatusCount);
+                dfaStatusCount++;
+            }
+            else
+            {
+                dfaNotFinalStatusSet.insert(dfaStatusCount);
+                dfaStatusCount++;
+            }
+        }
+    }
+    // 将起始状态 startDFANode 在每个输入字符 ch 下的转移关系存储在转移表 startDFANode.transitions[ch] 中
+    dfaTable.push_back(startDFANode);
+
+    // 对后面的新状态进行不停遍历
+    while (!newStatus.empty())
+    {
+        // 拿出一个新状态
+        set<int> ns = newStatus.front();
+        newStatus.pop_front();
+        DFANode DFANode;
+        DFANode.nfaStates = ns; // 该节点状态集合
+        DFANode.flag = containsInitOrFinal(ns);
+
+        for (auto ch : DFAChar)
+        {
+
+            set<int> ch_closure{};
+            for (auto c : ns)
+            {
+                set<int> tmp = otherClosure(c, ch);
+                ch_closure.insert(tmp.begin(), tmp.end());
+            }
+            if (ch_closure.empty()) // 如果这个闭包是空集没必要继续下去了
+            {
+                continue;
+            }
+
+            int size_before = dfaStatusSet.size(); // 记录更新状态集合前的大小
+            dfaStatusSet.insert(ch_closure);       // 更新状态集合
+            int size_after = dfaStatusSet.size();  // 记录更新状态集合后的大小
+
+            DFANode.transitions[ch] = ch_closure; // 无论是否都是该节点这个字符的状态
+
+            // 如果大小不一样，证明是新状态
+            if (size_after > size_before)
+            {
+                dfaToNumberMap[ch_closure] = dfaStatusCount;
+                newStatus.push_back(ch_closure);
+                if (containsInitOrFinal(ch_closure).find("+") != string::npos)
+                {
+                    dfaFinalStatusSet.insert(dfaStatusCount++);
+                }
+                else
+                {
+                    dfaNotFinalStatusSet.insert(dfaStatusCount++);
+                }
+            }
+        }
+        dfaTable.push_back(DFANode);
+    }
+
+    // dfa debug
+    // printDfaTable(dfaTable);
 }
 int main()
 {
