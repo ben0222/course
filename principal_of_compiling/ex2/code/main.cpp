@@ -89,6 +89,26 @@ set<int> dfaNotFinalStatusSet;
 // set对应序号MAP
 map<set<int>, int> dfaToNumberMap;
 int startStatus;
+
+// dfa最小化节点
+struct DFAMinNode
+{
+    string flag; // 是否包含终态（+）或初态（-）
+    int id;
+    map<char, int> transitions; // 字符到下一状态的映射
+    dfaMinNode() 
+    {
+        flag = "";
+    }
+};
+
+vector<dfaMinNode> dfaMinTable;
+
+// 用于分割集合
+vector<set<int>> divideVector;
+// 存下标
+map<int, int> dfaMinMap;
+
 /*----------预处理----------*/
 string multiLine(const string &regex)
 {
@@ -833,9 +853,9 @@ void NFAtoDFA(NFA &nfa)
     // 针对起始状态 startDFANode 的每个输入字符 ch，进行遍历
     for (auto ch : DFAChar)
     {
-        set<int> ch_closure{}; // 当前字符ch的闭包
+        set<int> ch_closure{}; // 用于存储当前字符ch的闭包
 
-        // 计算起始状态的输入字符 ch 下的其他闭包，并将结果存储在 ch_closure 中。
+        // 计算起始状态的输入字符 ch 下的其他字符闭包，并将结果存储在 ch_closure 中。
         for (auto c : startDFANode.nfaStates)
         {
             set<int> tmp = otherClosure(c, ch);
@@ -900,8 +920,8 @@ void NFAtoDFA(NFA &nfa)
             int size_before = dfaStatusSet.size(); // 记录更新状态集合前的大小
             dfaStatusSet.insert(ch_closure);       // 更新状态集合
             int size_after = dfaStatusSet.size();  // 记录更新状态集合后的大小
-
-            DFANode.transitions[ch] = ch_closure; // 无论是否都是该节点这个字符的状态
+            // 若计算出当前字符ch闭包为空，直接进入下一个字符
+            DFANode.transitions[ch] = ch_closure;
 
             // 如果大小不一样，证明是新状态
             if (size_after > size_before)
@@ -924,6 +944,161 @@ void NFAtoDFA(NFA &nfa)
     // dfa debug
     // printDfaTable(dfaTable);
 }
+
+// 判断是否含有初态终态，含有则返回对应字符串
+string minContainInitOrFinal(set<int>& statusSet)
+{
+    string result = "";
+    if (statusSet.count(startStaus) > 0) {
+        result += "-";
+    }
+
+    for (const int& element : dfaEndStatusSet) {
+        if (statusSet.count(element) > 0) {
+            result += "+";
+            break;  // 可能会有多个终态同时包含，我们只要一个
+        }
+    }
+
+    return result;
+}
+
+// 根据字符 ch 将状态集合 node 分成两个子集合
+void splitSet(int i, char ch)
+{
+    set<int> result;
+    auto& node = divideVector[i];
+    int s = -2;
+
+    for (auto state : node)
+    {
+        int thisNum;
+        if (dfaTable[state - 1].transitions.find(ch) == dfaTable[state - 1].transitions.end())
+        {
+            thisNum = -1; // 空集
+        }
+        else
+        {
+            // 根据字符 ch 找到下一个状态
+            int next_state = dfa2numberMap[dfaTable[state - 1].transitions[ch]];
+            thisNum = dfaMinMap[next_state];    // 这个状态的下标是多少
+        }
+
+        if (s == -2)    // 初始下标
+        {
+            s = thisNum;
+        }
+        else if (thisNum != s)   // 如果下标不同，就是有问题，需要分出来
+        {
+            result.insert(state);
+        }
+    }
+
+    // 删除要删除的元素
+    for (int state : result) {
+        node.erase(state);
+    }
+
+    // 都遍历完了，如果result不是空，证明有新的，加入vector中
+    if (!result.empty())
+    {
+        divideVector.push_back(result);
+        // 同时更新下标
+        for (auto a : result)
+        {
+            dfaMinMap[a] = divideVector.size() - 1;
+        }
+    }
+
+}
+
+void DFAminimize()
+{
+    divideVector.clear();
+    dfaMinMap.clear();
+
+    // 存入非终态、终态集合
+    if (dfaNotEndStatusSet.size() != 0)
+    {
+        divideVector.push_back(dfaNotEndStatusSet);
+    }
+    // 初始化map
+    for (auto t : dfaNotEndStatusSet)
+    {
+        dfaMinMap[t] = divideVector.size() - 1;
+    }
+
+    divideVector.push_back(dfaEndStatusSet);
+
+    for (auto t : dfaEndStatusSet)
+    {
+        dfaMinMap[t] = divideVector.size() - 1;
+    }
+
+    // 当flag为1时，一直循环
+    int continueFlag = 1;
+
+    while (continueFlag)
+    {
+        continueFlag = 0;
+        int size1 = divideVector.size();
+
+        for (int i = 0; i < size1; i++)
+        {
+
+            // 逐个字符尝试分割状态集合
+            for (char ch : dfaCharSet)
+            {
+                splitSet(i, ch);
+            }
+        }
+        int size2 = divideVector.size();
+        if (size2 > size1)
+        {
+            continueFlag = 1;
+        }
+    }
+
+    for (int dfaMinCount = 0; dfaMinCount < divideVector.size(); dfaMinCount++)
+    {
+        auto& v = divideVector[dfaMinCount];
+        dfaMinNode d;
+        d.flag = minSetHasStartOrEnd(v);
+        d.id = dfaMinCount;
+        // 逐个字符
+        for (char ch : dfaCharSet)
+        {
+            if (v.size() == 0)
+            {
+                d.transitions[ch] = -1;   // 空集特殊判断
+                continue;
+            }
+            int i = *(v.begin()); // 拿一个出来
+            if (dfaTable[i - 1].transitions.find(ch) == dfaTable[i - 1].transitions.end())
+            {
+                d.transitions[ch] = -1;   // 空集特殊判断
+                continue;
+            }
+            int next_state = dfa2numberMap[dfaTable[i - 1].transitions[ch]];
+            int thisNum = dfaMinMap[next_state];    // 这个状态下标
+            d.transitions[ch] = thisNum;
+        }
+        dfaMinTable.push_back(d);
+    }
+
+    // 输出 dfaMinTable
+    for (const dfaMinNode& node : dfaMinTable) {
+        qDebug() << "State " << node.id << ":";
+        qDebug() << "Flag: " << QString::fromStdString(node.flag);
+
+        for (const auto& entry : node.transitions) {
+            qDebug() << entry.first << " -> " << entry.second;
+        }
+    }
+
+    qDebug() << "DFA最小化完成！";
+}
+
 int main()
 {
     return 0;
