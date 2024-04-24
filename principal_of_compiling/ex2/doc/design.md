@@ -37,67 +37,72 @@
 ```C++
 NFA NFA_optional(NFA nfa_a)
 {
-    /*---新的初态和末态的定义---*/
-    NFAnode *start = new NFAnode();
-    NFAnode *end = new NFAnode();
+    NFA NFA_optional(NFA nfa1)
+{
+    nfaNode* start = new nfaNode();
+    nfaNode* ac = new nfaNode();
 
-    // 确定初态和末态
-    start->isInit = true;
-    end->isFinal = true;
+    start->isStart = true;
+    ac->isAC = true;
 
-    // 新初态和nfa_a的初态进行EPOSILON连接
-    NFAedge edge1;
-    edge1.type = EPSILON;
-    edge1.next = nfa_a.start;
+    // 新初态和nfa1的初态进行EPOSILON连接
+    nfaEdge edge1;
+    edge1.trans = EPSILON;
+    edge1.next = nfa1.start;
     start->edges.push_back(edge1);
-    nfa_a.start->isInit = false;
+    nfa1.start->isStart = false;
 
-    // nfa_a的终态和新末态进行EPOSILON连接
-    NFAedge edge2;
-    edge2.type = EPSILON;
-    edge2.next = end;
-    nfa_a.end->edges.push_back(edge2);
-    nfa_a.end->isFinal = false;
+    // nfa1的终态和新末态进行EPOSILON连接
+    nfaEdge edge2;
+    edge2.trans = EPSILON;
+    edge2.next = ac;
+    start->edges.push_back(edge2);
+    nfa1.ac->isAC = false;
 
     // 可选运算的实现：新初态和新末态进行EPOSILON连接
-    NFAedge edge3;
-    edge3.type = EPSILON;
-    edge3.next = end;
-    start->edges.push_back(edge3);
+    nfaEdge edge3;
+    edge3.trans = EPSILON;
+    edge3.next = ac;
+    nfa1.ac->edges.push_back(edge3);
+
+    NFA nfa(start, ac);
+    return nfa;
+}
 }
 ```
-核心思想在于：新建NFA结点，进行epsilon连接实现运算，并根据运算的性质更新初态和末态（通常来讲，新建的两个结点就会成为新的初态和末态）。
+核心思想在于：**新建NFA结点，进行epsilon连接实现运算，并根据运算的性质更新初态和末态（通常来讲，新建的两个结点就会成为新的初态和末态）。**
 3. 正则表达式转NFA算法：逆波兰表达式
 - NFA转DFA
 1. epsilon闭包计算
 ```C++
 // DFS实现epsilon闭包的计算
+// DFS实现epsilon闭包的计算
 set<int> epsilonClosure(int id)
 {
-    set<int> epsilon_closure{id}; // 将id也包括到epsilon_closure,因为一个结点的epsilon闭包也包括本身
-    // DFS实现epsilon闭包
+    set<int> epsilon_closure{ id };// 将id也包括到epsilon_closure,因为一个结点的epsilon闭包也包括本身
     stack<int> stack;
     stack.push(id);
+
     while (!stack.empty())
     {
-
-        int current = stack.top(); // 在循环中，不断从栈中弹出一个状态 current。
+        int current = stack.top();
         stack.pop();
 
-        set<int> temp = statusTable[current].state_reachable[EPSILON]; // 对于每个弹出的状态 current，获取其通过ε转移可达的状态集合temp，并遍历这个集合。
-        for (auto t : temp)                                            // 对于每个可达状态 t，
-            if (epsilon_closure.find(t) == epsilon_closure.end())      // 如果它不在 epsilon_closure 中，就将其加入到 epsilon_closure 中，并将其入栈，以便后续继续搜索
+        set<int> eClosure = statusTable[current].state_reachable[EPSILON];// 对于每个弹出的状态 current，获取其通过ε转移可达的状态集合temp，并遍历这个集合。
+        for (auto t : eClosure)                             // 对于每个可达状态 t，
+        {
+            if (epsilon_closure.find(t) == epsilon_closure.end())           // 如果它不在 eepsilon_closure 中，就将其加入到 epsilon_closure 中，并将其入栈，以便后续继续搜索
             {
-                {
-                    epsilon_closure.insert(t);
-                    stack.push(t);
-                }
+                epsilon_closure.insert(t);
+                stack.push(t);
             }
+        }
     }
+
     return epsilon_closure;
 }
 ```
-核心思想在于：将NFA结构视作图，则每个epsilon闭包就是该结点可以通过权值为epsilon的边到达哪些点，存在一个集合set中（便于去重）。则可以用栈结构实现DFS实现。
+核心思想在于：**将NFA结构视作图，则每个epsilon闭包就是该结点可以通过权值为epsilon的边到达哪些点，存在一个集合set中（便于去重）。则可以用栈结构实现DFS实现。**
 2. 非epsilon闭包计算
 ```C++
 
