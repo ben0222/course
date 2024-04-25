@@ -26,7 +26,14 @@
 -  数据存储结构
 - 正则表达式转NFA
 1. 正则表达式处理
-    - 转义字符
+    - 多行处理
+    对于给出多行的正则表达式，我们认为此时出现赋值运算。如：
+    ```
+    digit=[0-9]
+    letter=[a-zA-Z]
+    id=letter(letter|digit)*
+    ```
+    核心思想在于：** 需要建立map结构，对每一条正则表达式的变量名（`digit``letter``_id`）和其对应的正则表达式建立映射。再对每一个变量名进行遍历，若其出现了在某一条正则表达式中，判断其对应的变量名是否以下划线`_`开始。若是，则对该条正则表达式进行替换处理：里面引用的所有变量名将被其对应的正则表达式所替换。
     - 连接运算
     对于所有的连接，都用`.`进行连接。
     - 字符范围`[abc]`可写成`a|b|c`
@@ -71,7 +78,13 @@ NFA NFA_optional(NFA nfa_a)
 }
 ```
 核心思想在于：**新建NFA结点，进行epsilon连接实现运算，并根据运算的性质更新初态和末态（通常来讲，新建的两个结点就会成为新的初态和末态）。**
-3. 正则表达式转NFA算法：逆波兰表达式
+3. 正则表达式转NFA算法
+核心思想在于：**对于传入的正则表达式，for循环遍历每一个字符，用switch结构枚举，结合运算优先级，处理会出现的每一种情况。**
+    - 转义字符处理
+        若字符为`\`，则判断其下一个字符是否为运算符。若是，直接将该运算符视作普通字符，进行处理；若否，则将字符`\`视作普通字符，进行处理。
+    - 常规运算处理
+    - 普通字符处理
+    构建一个最简单的NFA：消耗该字符进入下一个状态。
 - NFA转DFA
 1. epsilon闭包计算
 ```C++
@@ -105,8 +118,37 @@ set<int> epsilonClosure(int id)
 核心思想在于：**将NFA结构视作图，则每个epsilon闭包就是该结点可以通过权值为epsilon的边到达哪些点，存在一个集合set中（便于去重）。则可以用栈结构实现DFS实现。**
 2. 非epsilon闭包计算
 ```C++
+set<int> otherClosure(int id, char c)
+{
+    set<int> other_clousure;
+    set<int> processed;
+    // DFS实现其他字符闭包
+    stack<int> stack;
+    stack.push(id);
 
+    while (!stack.empty())
+    {
+        int current = stack.top();
+        stack.pop(); // 在循环中，不断从栈中弹出一个状态 current。
+        // 对于每个弹出的状态 current：
+        if (processed.find(current) != processed.end()) // 如果 current 已经被处理过（在processed集合end之前，find到了），则跳过该状态（continue），继续处理下一个状态；
+            continue;
+
+        processed.insert(current); // 否则，将 current 标记为已处理。（插入processed集合）
+
+        set<int> temp = statusTable[current].state_reachable[c]; // 获取状态 current 在输入字符 c 下可以到达的状态集合 otherClosure。
+        for (auto t : temp)                                      // 遍历 otherClosure 中的每个状态 t：对于每个可达状态 t，调用 epsilonClosure(t) 计算其ε闭包，并将得到的闭包中的所有状态加入到 other_result 中。
+        {
+            auto t_epsilonClousure = epsilonClosure(t);
+            other_clousure.insert(t_epsilonClousure.begin(), t_epsilonClousure.end());
+            stack.push(t); // 将状态 t 入栈，以便后续继续搜索。
+        }
+    }
+    // 当栈为空时，表示所有通过输入字符 ch 可以到达的状态都已经被处理，函数返回 other_closure，其中包含了其他闭包中的所有状态。
+    return other_clousure;
+}
 ```
+核心思想在于：对给出的状态，看它可以根据给出的字符转移到哪些状态（这里与求epsilon闭包类似，用栈结构DFS实现），插入other_closure集合，并对该集合对每一个状态求epsilon闭包，继续插入other_closure集合。
 3. NFA转DFA算法
 - DFA最小化
 - 状态转换表的记录：DFS
