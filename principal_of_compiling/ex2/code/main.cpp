@@ -22,15 +22,15 @@ struct NFAedge // NFA边
 };
 struct NFAnode // NFA结点
 {
-    int id;       // 结点编号
-    bool isInit;  // 是否为初态
-    bool isFinal; // 是否为末态
+    int id;      // 结点编号
+    bool isInit; // 是否为初态
+    bool isAC;   // 是否为末态
     vector<NFAedge> edges;
     NFAnode()
     {
         id = node_count++;
         isInit = false;
-        isFinal = false;
+        isAC = false;
     }
 };
 
@@ -83,9 +83,9 @@ vector<DFANode> dfaTable;
 
 // 下面用于DFA最小化
 //  dfa终态集合
-set<int> dfaFinalStatusSet;
+set<int> dfaACStatusSet;
 // dfa非终态集合
-set<int> dfaNotFinalStatusSet;
+set<int> dfaNotACStatusSet;
 // set对应序号MAP
 map<set<int>, int> dfaToNumberMap;
 int startStatus;
@@ -96,13 +96,13 @@ struct DFAMinNode
     string flag; // 是否包含终态（+）或初态（-）
     int id;
     map<char, int> transitions; // 字符到下一状态的映射
-    dfaMinNode() 
+    DFAMinNode()
     {
         flag = "";
     }
 };
 
-vector<dfaMinNode> dfaMinTable;
+vector<DFAMinNode> dfaMinTable;
 
 // 用于分割集合
 vector<set<int>> divideVector;
@@ -250,7 +250,7 @@ NFA NFA_basic(char c)
 
     // 确定初态和末态
     start->isInit = true;
-    end->isFinal = true;
+    end->isAC = true;
 
     /*---边的定义---*/
     NFAedge edge;
@@ -269,7 +269,7 @@ NFA NFA_basic(char c)
 // 连接
 NFA NFA_connect(NFA nfa_a, NFA nfa_b)
 {
-    nfa_a.end->isFinal = false;
+    nfa_a.end->isAC = false;
     nfa_b.start->isInit = false;
 
     NFAedge edge1;
@@ -292,7 +292,7 @@ NFA NFA_alternation(NFA nfa_a, NFA nfa_b)
 
     // 确定初态和末态
     start->isInit = true;
-    end->isFinal = true;
+    end->isAC = true;
 
     // 把新的初态与nfa1和nfa2的初态连接起来
     NFAedge edge1;
@@ -312,13 +312,13 @@ NFA NFA_alternation(NFA nfa_a, NFA nfa_b)
     edge3.type = EPSILON;
     edge3.next = end;
     nfa_a.end->edges.push_back(edge3);
-    nfa_a.end->isFinal = false;
+    nfa_a.end->isAC = false;
 
     NFAedge edge4;
     edge4.type = EPSILON;
     edge4.next = end;
     nfa_b.end->edges.push_back(edge4);
-    nfa_b.end->isFinal = false;
+    nfa_b.end->isAC = false;
 
     NFA nfa(start, end); // 就是上面新的初态和末态
     return nfa;
@@ -332,7 +332,7 @@ NFA NFA_optional(NFA nfa_a)
 
     // 确定初态和末态
     start->isInit = true;
-    end->isFinal = true;
+    end->isAC = true;
 
     // 新初态和nfa_a的初态进行EPOSILON连接
     NFAedge edge1;
@@ -346,7 +346,7 @@ NFA NFA_optional(NFA nfa_a)
     edge2.type = EPSILON;
     edge2.next = end;
     nfa_a.end->edges.push_back(edge2);
-    nfa_a.end->isFinal = false;
+    nfa_a.end->isAC = false;
 
     // 可选运算的实现：新初态和新末态进行EPOSILON连接
     NFAedge edge3;
@@ -364,7 +364,7 @@ NFA NFA_kleene_star(NFA nfa_a)
 
     // 确定初态和末态
     start->isInit = true;
-    end->isFinal = true;
+    end->isAC = true;
 
     // 新初态和nfa_a的初态进行EPOSILON连接
     NFAedge edge1;
@@ -378,7 +378,7 @@ NFA NFA_kleene_star(NFA nfa_a)
     edge2.type = EPSILON;
     edge2.next = end;
     nfa_a.end->edges.push_back(edge2);
-    nfa_a.end->isFinal = false;
+    nfa_a.end->isAC = false;
 
     // 闭包运算的实现：
     //  新初态和新末态进行EPOSILON连接
@@ -404,7 +404,7 @@ NFA NFA_kleene_plus(NFA nfa_a)
 
     // 确定初态和末态
     start->isInit = true;
-    end->isFinal = true;
+    end->isAC = true;
 
     // 新初态和nfa_a的初态进行EPOSILON连接
     NFAedge edge1;
@@ -418,7 +418,7 @@ NFA NFA_kleene_plus(NFA nfa_a)
     edge2.type = EPSILON;
     edge2.next = end;
     nfa_a.end->edges.push_back(edge2);
-    nfa_a.end->isFinal = false;
+    nfa_a.end->isAC = false;
 
     // 正闭包运算的实现：对比闭包运算，少了一条从新初态到新末态的epsilon连接
     //  闭包运算的实现：
@@ -482,14 +482,14 @@ void createNFAStatusTable(NFA &nfa)
                     nextStatus.flag += '-'; // -表示初态
                     initNFAstatus.insert(nextStatus.id);
                 }
-                else if (nextNode->isFinal)
+                else if (nextNode->isAC)
                 {
                     nextStatus.flag += '+'; // +表示终态
                     finalNFAstatus.insert(nextStatus.id);
                 }
                 statusTable[nextNode->id] = nextStatus;
                 // 记录插入顺序（排除终态）
-                if (!nextNode->isFinal)
+                if (!nextNode->isAC)
                 {
                     insertionOrder.push_back(nextNode->id);
                 }
@@ -743,7 +743,7 @@ NFA regexToNFA(string regex)
 // }
 /*----------NFA to DFA----------*/
 // 判断是否含有初态终态，含有则返回对应字符串
-string containsInitOrFinal(set<int> &statusSet)
+string containsInitOrAC(set<int> &statusSet)
 {
     string result = "";
     for (const int &element : initNFAstatus)
@@ -830,23 +830,23 @@ void NFAtoDFA(NFA &nfa)
     auto startId = start->id; // 获得起始编号
 
     DFANode startDFANode;
-    startDFANode.nfaStates = epsilonClosure(startId);                // 初始闭包
-    startDFANode.flag = containsInitOrFinal(startDFANode.nfaStates); // 判断初始闭包是否包含初态和终态
+    startDFANode.nfaStates = epsilonClosure(startId);             // 初始闭包
+    startDFANode.flag = containsInitOrAC(startDFANode.nfaStates); // 判断初始闭包是否包含初态和终态
 
     deque<set<int>> newStatus{}; // 新状态双向队列
     // 将初始状态的ε闭包与对应的编号存入 dfaToNumberMap 中，并将初始状态的编号记录为 startStatus。
     dfaToNumberMap[startDFANode.nfaStates] = dfaStatusCount;
     startStatus = dfaStatusCount;
 
-    // 判断初始状态的ε闭包是否包含终态，如果是，则将其编号加入到终态集合 dfaFinalStatusSet 中；否则，将其编号加入到非终态集合 dfaNotFinalStatusSet 中，并递增 dfaStatusCount。
-    if (containsInitOrFinal(startDFANode.nfaStates).find("+") != string::npos)
+    // 判断初始状态的ε闭包是否包含终态，如果是，则将其编号加入到终态集合 dfaACStatusSet 中；否则，将其编号加入到非终态集合 dfaNotACStatusSet 中，并递增 dfaStatusCount。
+    if (containsInitOrAC(startDFANode.nfaStates).find("+") != string::npos)
     {
-        dfaFinalStatusSet.insert(dfaStatusCount);
+        dfaACStatusSet.insert(dfaStatusCount);
         dfaStatusCount++;
     }
     else
     {
-        dfaNotFinalStatusSet.insert(dfaStatusCount);
+        dfaNotACStatusSet.insert(dfaStatusCount);
         dfaStatusCount++;
     }
 
@@ -878,14 +878,14 @@ void NFAtoDFA(NFA &nfa)
             // 将其加入到队列 newStatus 中，更新状态编号
             dfaToNumberMap[ch_closure] = dfaStatusCount;
             newStatus.push_back(ch_closure);
-            if (containsInitOrFinal(ch_closure).find("+") != string::npos)
+            if (containsInitOrAC(ch_closure).find("+") != string::npos)
             {
-                dfaFinalStatusSet.insert(dfaStatusCount);
+                dfaACStatusSet.insert(dfaStatusCount);
                 dfaStatusCount++;
             }
             else
             {
-                dfaNotFinalStatusSet.insert(dfaStatusCount);
+                dfaNotACStatusSet.insert(dfaStatusCount);
                 dfaStatusCount++;
             }
         }
@@ -901,7 +901,7 @@ void NFAtoDFA(NFA &nfa)
         newStatus.pop_front();
         DFANode DFANode;
         DFANode.nfaStates = ns; // 该节点状态集合
-        DFANode.flag = containsInitOrFinal(ns);
+        DFANode.flag = containsInitOrAC(ns);
 
         for (auto ch : DFAChar)
         {
@@ -928,13 +928,13 @@ void NFAtoDFA(NFA &nfa)
             {
                 dfaToNumberMap[ch_closure] = dfaStatusCount;
                 newStatus.push_back(ch_closure);
-                if (containsInitOrFinal(ch_closure).find("+") != string::npos)
+                if (containsInitOrAC(ch_closure).find("+") != string::npos)
                 {
-                    dfaFinalStatusSet.insert(dfaStatusCount++);
+                    dfaACStatusSet.insert(dfaStatusCount++);
                 }
                 else
                 {
-                    dfaNotFinalStatusSet.insert(dfaStatusCount++);
+                    dfaNotACStatusSet.insert(dfaStatusCount++);
                 }
             }
         }
@@ -944,19 +944,23 @@ void NFAtoDFA(NFA &nfa)
     // dfa debug
     // printDfaTable(dfaTable);
 }
-
+/*----------DFA Minimization----------*/
 // 判断是否含有初态终态，含有则返回对应字符串
-string minContainInitOrFinal(set<int>& statusSet)
+string minContainInitOrAC(set<int> &statusSet)
 {
     string result = "";
-    if (statusSet.count(startStaus) > 0) {
+    if (statusSet.count(startStatus) > 0)
+
+    {
         result += "-";
     }
 
-    for (const int& element : dfaEndStatusSet) {
-        if (statusSet.count(element) > 0) {
+    for (const int &element : dfaACStatusSet)
+    {
+        if (statusSet.count(element) > 0)
+        {
             result += "+";
-            break;  // 可能会有多个终态同时包含，我们只要一个
+            break; // 可能会有多个终态同时包含，我们只要一个
         }
     }
 
@@ -967,7 +971,7 @@ string minContainInitOrFinal(set<int>& statusSet)
 void splitSet(int i, char ch)
 {
     set<int> result;
-    auto& node = divideVector[i];
+    auto &node = divideVector[i];
     int s = -2;
 
     for (auto state : node)
@@ -980,22 +984,23 @@ void splitSet(int i, char ch)
         else
         {
             // 根据字符 ch 找到下一个状态
-            int next_state = dfa2numberMap[dfaTable[state - 1].transitions[ch]];
-            thisNum = dfaMinMap[next_state];    // 这个状态的下标是多少
+            int next_state = dfaToNumberMap[dfaTable[state - 1].transitions[ch]];
+            thisNum = dfaMinMap[next_state]; // 这个状态的下标是多少
         }
 
-        if (s == -2)    // 初始下标
+        if (s == -2) // 初始下标
         {
             s = thisNum;
         }
-        else if (thisNum != s)   // 如果下标不同，就是有问题，需要分出来
+        else if (thisNum != s) // 如果下标不同，就是有问题，需要分出来
         {
             result.insert(state);
         }
     }
 
     // 删除要删除的元素
-    for (int state : result) {
+    for (int state : result)
+    {
         node.erase(state);
     }
 
@@ -1009,7 +1014,6 @@ void splitSet(int i, char ch)
             dfaMinMap[a] = divideVector.size() - 1;
         }
     }
-
 }
 
 void DFAminimize()
@@ -1018,19 +1022,19 @@ void DFAminimize()
     dfaMinMap.clear();
 
     // 存入非终态、终态集合
-    if (dfaNotEndStatusSet.size() != 0)
+    if (dfaNotACStatusSet.size() != 0)
     {
-        divideVector.push_back(dfaNotEndStatusSet);
+        divideVector.push_back(dfaNotACStatusSet);
     }
     // 初始化map
-    for (auto t : dfaNotEndStatusSet)
+    for (auto t : dfaNotACStatusSet)
     {
         dfaMinMap[t] = divideVector.size() - 1;
     }
 
-    divideVector.push_back(dfaEndStatusSet);
+    divideVector.push_back(dfaACStatusSet);
 
-    for (auto t : dfaEndStatusSet)
+    for (auto t : dfaACStatusSet)
     {
         dfaMinMap[t] = divideVector.size() - 1;
     }
@@ -1047,7 +1051,7 @@ void DFAminimize()
         {
 
             // 逐个字符尝试分割状态集合
-            for (char ch : dfaCharSet)
+            for (char ch : DFAChar)
             {
                 splitSet(i, ch);
             }
@@ -1061,42 +1065,44 @@ void DFAminimize()
 
     for (int dfaMinCount = 0; dfaMinCount < divideVector.size(); dfaMinCount++)
     {
-        auto& v = divideVector[dfaMinCount];
-        dfaMinNode d;
-        d.flag = minSetHasStartOrEnd(v);
+        auto &v = divideVector[dfaMinCount];
+        DFAMinNode d;
+        d.flag = minContainInitOrAC(v);
         d.id = dfaMinCount;
         // 逐个字符
-        for (char ch : dfaCharSet)
+        for (char ch : DFAChar)
         {
             if (v.size() == 0)
             {
-                d.transitions[ch] = -1;   // 空集特殊判断
+                d.transitions[ch] = -1; // 空集特殊判断
                 continue;
             }
             int i = *(v.begin()); // 拿一个出来
             if (dfaTable[i - 1].transitions.find(ch) == dfaTable[i - 1].transitions.end())
             {
-                d.transitions[ch] = -1;   // 空集特殊判断
+                d.transitions[ch] = -1; // 空集特殊判断
                 continue;
             }
-            int next_state = dfa2numberMap[dfaTable[i - 1].transitions[ch]];
-            int thisNum = dfaMinMap[next_state];    // 这个状态下标
+            int next_state = dfaToNumberMap[dfaTable[i - 1].transitions[ch]];
+            int thisNum = dfaMinMap[next_state]; // 这个状态下标
             d.transitions[ch] = thisNum;
         }
         dfaMinTable.push_back(d);
     }
 
     // 输出 dfaMinTable
-    for (const dfaMinNode& node : dfaMinTable) {
-        qDebug() << "State " << node.id << ":";
-        qDebug() << "Flag: " << QString::fromStdString(node.flag);
+    for (const DFAMinNode &node : dfaMinTable)
+    {
+        cout << "State " << node.id << ":";
+        cout << "Flag: " << string(node.flag);
 
-        for (const auto& entry : node.transitions) {
-            qDebug() << entry.first << " -> " << entry.second;
+        for (const auto &entry : node.transitions)
+        {
+            cout << entry.first << " -> " << entry.second;
         }
     }
 
-    qDebug() << "DFA最小化完成！";
+    cout << "DFA minimazation has been successfully completed!";
 }
 
 int main()
